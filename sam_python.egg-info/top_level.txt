@@ -1,3 +1,0 @@
-sam_python
-src_python
-test
