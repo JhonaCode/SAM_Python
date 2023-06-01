@@ -16,9 +16,9 @@ import datetime as dt
 from files_direction import * 
 
 #import  campain_data  as cd
-import source.data_own as down
+import sam_python.data_own as down
 
-import source.figure_own_2d as fown
+import sam_python.figure_own_2d as fown
 
 
 

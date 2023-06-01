@@ -4,7 +4,7 @@ import  numpy               as np
 
 import  datetime            as dt
 
-import  cftime as cf
+import  cftime              as cf
 
 import  matplotlib.pyplot   as plt
 
@@ -12,41 +12,35 @@ import  matplotlib          as mpl
 
 from    matplotlib.ticker   import MultipleLocator, FormatStrFormatter
 
-import  source.data_own            as down
+import  sam_python.data_own            as down
 
-import  source.figure_own          as fown
+import  sam_python.figure_own          as fown
 
-import  source.campain_data        as cd
+import  sam_python.campain_data        as cd
 
-from    source.plotparameters      import *
+from    sam_python.plotparameters      import *
 
 from    files_direction     import file_fig 
 
 
-
-
-#To control de zaixs label and legend on in the figure
-zaxis=False
-legen_on=False
-
 def color_hours(hour):
     line=[1,0]
     color='k'
+
     if hour==9:
-        #line=[3,2,1,2]
+          #line=[3,2,1,2]
+          line=[1,0]
+          color='darkcyan'
 
-        color='darkcyan'
+    elif  hour==10:
 
-    if   hour==10:
+          line=[2,2,1,2]
+          color='blue'
 
-        line=[2,2,1,2]
-        color='blue'
-
-
-    if    hour==11:
-
-    	#line=[2, 1]
-    	color='cyan'
+    elif  hour==11:
+          #line=[2, 1]
+          line=[1,0]
+          color='cyan'
 
     elif  hour==12:
 
@@ -79,6 +73,7 @@ def color_hours(hour):
     elif  hour==18:
 
           #line=[4,2,1,2]
+          line=[1,0]
           color='y'
 
     elif  hour==19:
@@ -88,191 +83,87 @@ def color_hours(hour):
     
     return line,color
 
-#Level max
+def defaul_values(lim,maxv,minv,alt,maxh,var_to,name,color,explabel2,leg_loc,diurnal,show): 
 
-lmax	=5.0
-ano 	=2014
+
+        lim.append([minv,maxv])         #[0]
+        alt.append(maxh)                #[1]
+        var_to.append(1)                #[2]
+        color.append('red')             #[3]
+        explabel2.append(name)            #[4]
+        leg_loc.append([(maxv-minv)/4.0+minv,maxh*0.85,True,True]) #[5]
+        #leg_loc.append([maxv*0.3,maxh*0.85,True,True]) #[5]
+        diurnal.append(True)            #[6]
+        show.append(True)               #[7]
+
+        defaul=[lim,alt,var_to,color,explabel2,leg_loc,diurnal,show]
+
+
+        return defaul
+
 
 def label_plots(ax,legend,explabel): 
 
+###Text position x
+#legend[0]=0.0
+###Text position y
+#legend[1]=0.0
+###Z label
+#legend[2]=True
+###hours label
+#legend[3]=True
+
     ax.text(legend[0], legend[1], r' %s'%(explabel[1]), fontsize=8, color='black')
 
-    if(zaxis==True):
+    if( legend[2]==True):
         plt.ylabel(r'z [km]') 
-
-    if(legen_on==True):
-        plt.legend(frameon=False)
 
     if( legend[3]==True):
-        plt.ylabel(r'z [km]') 
-
-    if( legend[4]==True):
     	plt.legend(frameon=False,loc=legend[2])
 
     return ax
 
 
-def massflux_deep(exp,days,alt,lim,color,explabel,explabel2,show,diurnal): 
+def diurnal_hours(exp,name_ex,exp_var,days,alt=[],lim=[],var_to=[],color=[],explabel2=[],leg_loc=[],diurnal=[],show=[]): 
 
-    print("__________")
-    print("MASSFLUX DEEP"  )
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='massflux'
 
     for ex in exp:
 
-        var.append(ex.MC)
-        data.append(ex.data)
-        z.append(ex.z)
+        print("___________________")
+        print("________%s___"%(exp))
+        print("___________________")
 
-    main_plot_deep(var,data,z,days,alt,lim,color,name,explabel,explabel2,diurnal)
+        #Function to defined the defaul values
+        k=0
+        for var in exp_var:
 
-    return 
+            maxh=np.max(ex.z)/1000.0
+            maxv=np.max(var)
+            minv=np.min(var)
 
+            name=var.name
 
-def diurnal_hours_massflux(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("MASSFLUX"  )
-    print("__________")
-
-    var =[]
-    data=[]
-    z   =[]
-
-    name='massflux'
-
-    for ex in exp:
-
-        data.append(ex.data)
-
-        var.append(ex.MC)
-
-        z.append(ex.z)
+            defaul=defaul_values(lim,maxv,minv,alt,maxh,var_to,name,color,explabel2,leg_loc,diurnal,show)
 
 
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
 
-    if show:
+            print("___________________")
+            print("%s"%(var.long_name))
+            print("___________________")
 
-        plt.show()
+            figs,axis = main_plot_diurnal_new(var[:]*defaul[2][k],ex.data,ex.z,days[k],defaul[1][k],defaul[0][k],defaul[3][k],name_ex[0]+'_'+name,defaul[4][k],defaul[5][k],defaul[6][k])
+
+            #print(defaul )
+            if defaul[7][k]:
+
+                plt.show()
+
+            k+=1
 
     plt.close('all')
 
     return 
 
-
-def diurnal_hours_relh(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("RELATIVE HUMIDITY"  )
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='relh'
-
-    for ex in exp:
-
-        var.append(ex.RELH)
-        data.append(ex.data)
-        z.append(ex.z)
-
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-    return 
-
-def diurnal_hours_tke(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("TKE"       )
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='tke'
-
-    for ex in exp:
-
-        var.append(ex.TKE)
-        data.append(ex.data)
-        z.append(ex.z)
-    
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return 
-
-def diurnal_hours_cld(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("CLOUD FRACTION")
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='cld'
-
-    for ex in exp:
-
-        var.append(ex.CLD[:]*100.0)
-        data.append(ex.data)
-        z.append(ex.z)
-    
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return 
-
-def diurnal_hours_thetae(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("Potetial Equivalent Temperature")
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='thetae'
-
-    for ex in exp:
-
-        var.append(ex.THETAE[:])
-        data.append(ex.data)
-        z.append(ex.z)
-    
-    figs,axis =main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return 
 
 def diurnal_hours_se(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
 
@@ -305,159 +196,6 @@ def diurnal_hours_se(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diur
 
     return 
 
-def diurnal_hours_cld_core(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("Cloud Fraction Core")
-    print("__________")
-
-    var1 =[]
-    var2 =[]
-    data=[]
-    z=[]
-
-    name='cld_core'
-
-    for ex in exp:
-
-        var1.append(ex.CLD[:]*100)
-        var2.append(ex.CORECL[:]*100) 
-        data.append(ex.data)
-        z.append(ex.z)
-    
-    figs,axis = main_plot_diurnal_2var(var1,var2,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-    for ax in axis:
-	    ax.text(0.025, 0.45, r'Core' , fontsize=12, color='gray')
-	    ax.text(0.045, 2.5 , r'Cloud', fontsize=12, color='navy')
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-    return 
-
-def diurnal_hours_ql(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("Liquid Water")
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='ql'
-
-    for ex in exp:
-
-        var.append(ex.QC[:])
-        data.append(ex.data)
-        z.append(ex.z)
-    
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-    #for ax in axis:
-    #    ax.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return 
-
-def diurnal_hours_qn(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("Total Water")
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='qt'
-
-    for ex in exp:
-
-        var.append(ex.QN[:])
-        data.append(ex.data)
-        z.append(ex.z)
-    
-
-    
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-    #for ax in axis:
-    #    ax.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return 
-
-def diurnal_hours_qi(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("Cloud ice")
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='qci'
-
-    for ex in exp:
-
-        var.append(ex.QCI[:])
-        data.append(ex.data)
-        z.append(ex.z)
-    
-
-    
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-    for ax in axis:
-        ax.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return 
-
-def diurnal_hours_wobs(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("WOBS")
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='wobs'
-
-    for ex in exp:
-
-        var.append(ex.WOBS[:]*100)
-        data.append(ex.data)
-        z.append(ex.z)
-    
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return 
-
 def diurnal_hours_uv(exp,days,alt,lim,color,explabel,explabel2,show,diurnal): 
 
 
@@ -482,15 +220,6 @@ def diurnal_hours_uv(exp,days,alt,lim,color,explabel,explabel2,show,diurnal):
     figs,axis = main_plot_diurnal_2var(var1,var2,data,z,days,alt,lim,color,name,explabel,explabel2,diurnal)
 
     k=0
-
-    #for ax in axis:
-
-    #    ax.text(lim[k][0]+0.5, 3.0, r'u $\rightarrow$ ')
-    #    ax.text(lim[k][1]-4, 3.0, r'$\leftarrow$ v')
-    #    print(explabel[k])
-
-    #    plt.savefig('%sdiurnal_u_v_%s.pdf'%(file_fig,explabel[k]),bbox_inches='tight', format='pdf', dpi=1000)
-    #    k=k+1
 
 
     if show:
@@ -525,12 +254,6 @@ def diurnal_hours_tq(exp,days,alt,lim1,lim2,cor1,cor2,explabel,explabel2,leg_loc
     
     figs,axis1,axis2 = main_plot_diurnal_2axis(var1,var2,data,z,days,alt,lim1,lim2,cor1,cor2,name,explabel,explabel2,leg_loc,diurnal)
 
-    #k=0
-    #for ax1 in axis1:
-
-    #    ax1.set_xlabel(r'$\mathrm{\theta\quad [K]}$', color=cor1[k])
-    #    axis2[k].set_xlabel(r'q [$\mathrm{gkg^{-1}}$]', color=cor2[k])
-
     if show:
 
         plt.show()
@@ -538,222 +261,7 @@ def diurnal_hours_tq(exp,days,alt,lim1,lim2,cor1,cor2,explabel,explabel2,leg_loc
     plt.close('all')
     return 
 
-def diurnal_hours_qlflux(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
 
-    print("__________")
-    print("QLFLUX_ Liquid water flux")
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='qlflux'
-
-    for ex in exp:
-
-        var.append(ex.QCFLUX[:])
-        data.append(ex.data)
-        z.append(ex.z)
-    
-    
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return 
-
-def diurnal_hours_qtflux(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("QTFLUX_ Non precipitatin total water flux")
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='qtflux'
-
-    for ex in exp:
-
-        var.append(ex.QTFLUX[:])
-        data.append(ex.data)
-        z.append(ex.z)
-    
-    
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return 
-
-
-def diurnal_hours_thetalflux(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("THETALFLUX static energuy flux")
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='thetalflux'
-
-    for ex in exp:
-
-        var.append(ex.TLFLUX[:])
-        data.append(ex.data)
-        z.append(ex.z)
-    
-    
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return 
-
-def diurnal_hours_bouyancyflux(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("Bouyancy flux")
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='buoyancyflux'
-    #print "The vertical kinematic flux of virtual potential temperature
-    #ams2001glos-Bex04
-    #, which when multiplied by the buoyancy parameter (g/Tv) yields a flux that is proportional to buoyancy, that is," 
-
-    for ex in exp:
-
-        #var.append(ex.TVFLUX[:]*9.81/(ex.THETA[0,0]))
-        # TVFLUX divide by cp*rho  and mulitiply g/Tv to bouyancy flux
-        # w/m2 (Kkg)/J*m^3/kg *kg/(ms^2K) =m^2/s^3
-        var.append(ex.TVFLUX[:]*(9.81/(ex.THETA[10,10]*1005.0*ex.RHO[10,10])))
-        data.append(ex.data)
-        z.append(ex.z)
-    
-    
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-    #for ax in axis:
-    #    ax.ticklabel_format(axis="x", style="sci")
-
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return 
-
-
-
-def diurnal_hours_w2(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("W2_Variance of veritcal velocity ")
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='w2'
-    #print "The vertical kinematic flux of virtual potential temperature
-    #ams2001glos-Bex04
-    #, which when multiplied by the buoyancy parameter (g/Tv) yields a flux that is proportional to buoyancy, that is," 
-
-    for ex in exp:
-
-        var.append(ex.W2[:])
-        data.append(ex.data)
-        z.append(ex.z)
-    
-    
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-	#ax.text(lim[k][0]+(lim[k][1]-lim[k][0])/4.0, 3.8, r' %s'%(explabel2[k]), fontsize=12, color='black')
-
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return 
-
-def diurnal_hours_q1(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("Q1")
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='q1'
-
-    for ex in exp:
-
-        var.append(ex.Q1C[:])
-        data.append(ex.data)
-        z.append(ex.z)
-    
-    
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return 
-
-def diurnal_hours_q2(exp,days,alt,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-    print("__________")
-    print("Q2")
-    print("__________")
-
-    var =[]
-    data=[]
-    z=[]
-
-    name='q2'
-
-    for ex in exp:
-
-        var.append(ex.Q2[:])
-        data.append(ex.data)
-        z.append(ex.z)
-    
-    
-    figs,axis = main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal)
-
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return 
 
 def d_time(data,days):
 
@@ -772,115 +280,6 @@ def d_time(data,days):
 
     return idi, idf,ni, nf,hi,hf
 
-
-def diurnal_hours_tke_budget(exp,days,alt,hour_mean,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
-
-
-    print("__________")
-    print("   TKE    ")
-    print("__________")
-
-    fig=[]
-
-    plt.rcParams["figure.figsize"] = (6,4)
-    
-    k=0
-    nfig=0
-
-
-    for ex in exp:
-
-        size_wg = 0.28
-        size_wg = 0.33
-        size_hf = 1.50
-
-        if (explabel=='small'):
-
-            plotsize(size_wg,size_hf, 1.0,'diurnal')
-
-        else:
-
-            plotsize(size_wg,size_hf, 0.0,'diurnal')
-
-        #To plot 
-        fn  = plt.figure(nfig)
-        ax  = plt.axes()
-
-        ##interval hour
-        ch=1
-
-        #Falta dividir pelo tempo, derivada temporal no budget
-        #var1=ex.TKE[:]  +ex.TKES[:]
-
-        var2=   ex.SHEAR[:]    +   ex.SHEARS[:]
-        var3=   ex.BUOYA[:]    +   ex.BUOYAS[:]
-        var4=   ex.ADVTR[:]    +   ex.ADVTRS[:]
-        var5=   ex.PRESSTR[:]
-        var6=   ex.DISSIP[:]   +   ex.DISSIPS[:]
-
-        var1=var2+var3+var4+var5+var6
-
-        idi     = dt.datetime(days[k][0], days[k][1] ,days[k][2], days[k][3]) 
-        idf     = dt.datetime(days[k][4], days[k][5] ,days[k][6], days[k][7])
-
-        hi=hour_mean[0]
-        hf=hour_mean[1]
-
-        meanvar2,hour = diurnal_main(ex.data,ex.z[:]/1000.0,var2,idi,idf,k,hi,hf,ch)
-        meanvar3,hour = diurnal_main(ex.data,ex.z[:]/1000.0,var3,idi,idf,k,hi,hf,ch)
-        meanvar4,hour = diurnal_main(ex.data,ex.z[:]/1000.0,var4,idi,idf,k,hi,hf,ch)
-        meanvar5,hour = diurnal_main(ex.data,ex.z[:]/1000.0,var5,idi,idf,k,hi,hf,ch)
-        meanvar6,hour = diurnal_main(ex.data,ex.z[:]/1000.0,var6,idi,idf,k,hi,hf,ch)
-
-        line,col =color_hours(9)
-        plt.plot(meanvar2[0,:],ex.z[:]/1000.0,label='S',color=col,linewidth=1.5,alpha=1.0,dashes=line)
-        line,col =color_hours(10)
-        plt.plot(meanvar3[0,:],ex.z[:]/1000.0,label='B',color=col,linewidth=1.5,alpha=1.0,dashes=line)
-        line,col =color_hours(11)
-        plt.plot(meanvar4[0,:],ex.z[:]/1000.0,label='T',color=col,linewidth=1.5,alpha=1.0,dashes=line)
-        line,col =color_hours(12)
-        plt.plot(meanvar5[0,:],ex.z[:]/1000.0,label='P',color=col,linewidth=1.5,alpha=1.0,dashes=line)
-        line,col =color_hours(13)
-        plt.plot(meanvar6[0,:],ex.z[:]/1000.0,label='D',color=col,linewidth=1.5,alpha=1.0,dashes=line)
-
-        plt.axis([lim[k][0],lim[k][1],0,alt[k]])
-
-        ax.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
-        ax.xaxis.get_offset_text().set_visible(False)
-        #xFormatter = FormatStrFormatter('%.2f}')
-        #ax.xaxis.set_major_formatter(xFormatter)
-
-        plt.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
-
-        ax=label_plots(ax,leg_loc[k],[explabel[k],explabel2[k]])
-
-        #ax.text(leg_loc[k][0], leg_loc[k][1]-0.2, r'TKE BUDGET', fontsize=8, color='black')
-
-        ax.text(leg_loc[k][0], leg_loc[k][1]-0.2, r' h=%s LT'%(hour_mean[0]), fontsize=8, color='black')
-
-        #if(explabel[k]=='small_nr'):
-        #    plt.legend(frameon=False)
-        #plt.ylabel(r'z[km]') 
-
-        ##if( name!='qt' ):
-        ##    xFormatter = FormatStrFormatter('%.2f')
-        ##    ax.xaxis.set_major_formatter(xFormatter)
-
-
-        #plt.xlabel(r'TKE Budget $\mathrm{[m^{2}s^{-3}]}x10^{-3}$') 
-
-        plt.savefig('%sdiurnal_tke_budget_%s_h_%s.pdf'%(file_fig,explabel[k],hour_mean[0]),bbox_inches='tight',dpi=1000, format='pdf')
-
-        nfig=nfig+1
-
-        k=k+1
-
-    if show:
-        plt.show()
-
-    plt.close('all')
-
-    return fig 
 
 def diurnal_tke_budget(exp,days,alt,hour_step,lim,color,explabel,explabel2,leg_loc,show,diurnal): 
 
@@ -932,13 +331,6 @@ def diurnal_tke_budget(exp,days,alt,hour_step,lim,color,explabel,explabel2,leg_l
         meanvar5,hour = diurnal_main(ex.data,ex.z[:]/1000.0,var5,idi,idf,k,hi,hf,ch)
         meanvar6,hour = diurnal_main(ex.data,ex.z[:]/1000.0,var6,idi,idf,k,hi,hf,ch)
 
-        #To plot the average and the standar devition 
-        #fn,ax=fown.splot_own_label(nfig,var1[ni:nf,:],ex.z[:]/1000.0,'red'    , 'TKE_budget' )
-        #fn,ax=fown.splot_own_label(nfig,var2[ni:nf,:],ex.z[:]/1000.0,'blue'   , 'SHEAR'      )
-        #fn,ax=fown.splot_own_label(nfig,var3[ni:nf,:],ex.z[:]/1000.0,'red'    , 'BUOYANCY'   )
-        #fn,ax=fown.splot_own_label(nfig,var4[ni:nf,:],ex.z[:]/1000.0,'magenta', 'PRESSURE TRANSPORT'  )
-        #fn,ax=fown.splot_own_label(nfig,var5[ni:nf,:],ex.z[:]/1000.0,'cyan'   , 'ADVECTIVE TRANSPORT'  )
-        #fn,ax=fown.splot_own_label(nfig,var6[ni:nf,:],ex.z[:]/1000.0,'green'  , 'DISSIPATION')
 
         fn,ax=fown.splot_own_label(nfig,var2[ni:nf,:],ex.z[:]/1000.0,'blue'   , 'S'  )
         fn,ax=fown.splot_own_label(nfig,var3[ni:nf,:],ex.z[:]/1000.0,'red'    , 'B'  )
@@ -948,7 +340,6 @@ def diurnal_tke_budget(exp,days,alt,hour_step,lim,color,explabel,explabel2,leg_l
 
         if diurnal==True:
 
-	    #to put the legent 
             jj=0
 
             for j in range(0,hf-hi+ch,ch):
@@ -963,7 +354,6 @@ def diurnal_tke_budget(exp,days,alt,hour_step,lim,color,explabel,explabel2,leg_l
                 jj=jj+1
 
 
-	### End for #################3
 
         plt.axis([lim[k][0],lim[k][1],0,alt[k]])
 
@@ -972,12 +362,6 @@ def diurnal_tke_budget(exp,days,alt,hour_step,lim,color,explabel,explabel2,leg_l
         plt.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
         plt.legend(frameon=False)
         plt.ylabel(r'z[km]') 
-
-        #if( name!='qt' ):
-        #    xFormatter = FormatStrFormatter('%.2f')
-        #    ax.xaxis.set_major_formatter(xFormatter)
-
-        #ax.text(leg_loc[k][0], leg_loc[k][1], r' %s'%(explabel2[k]), fontsize=8, color='black')
 
         plt.xlabel(r'TKE BUDGET $\mathrm{[m^{2}s^{-3}]}$') 
 
@@ -1040,117 +424,72 @@ def main_plot_deep(var,data,z,days,alt,lim,color,name,explabel,explabel2,diurnal
     return 
 
 
+def main_plot_diurnal_new(vartoplot,data,z,days,alt,lim,color,name,explabel2,leg_loc,diurnal):
 
-def main_plot_diurnal(var,data,z,days,alt,lim,color,name,explabel,explabel2,leg_loc,diurnal):
+    #Initial day
+    idi     = dt.datetime(days[0], days[1] ,days[2], days[3]) 
+    idf     = dt.datetime(days[4], days[5] ,days[6], days[7])
 
-    figs=[]
-    axis=[]
+    #initial hour
+    hi=days[3]
+    #final hour
+    hf=days[7]
 
-    nfig=0
+    ni,nf= down.data_n(idi,idf,data[:])
 
-    k=0
-    for vartoplot in var:
+    ##interval hour
+    ch      = 1
 
+    #mean diurnal function 
+    meanvar,hour = diurnal_main(data,z,vartoplot,idi,idf,hi,hf,ch)
 
-        #Initial day
-        idi     = dt.datetime(days[k][0], days[k][1] ,days[k][2], days[k][3]) 
-        idf     = dt.datetime(days[k][4], days[k][5] ,days[k][6], days[k][7])
+    size_wg = 0.28
+    size_wg = 0.33
+    size_hf = 1.50
 
-        #idi     = cf.datetime(days[k][0], days[k][1] ,days[k][2], days[k][3]) 
-        #idf     = cf.datetime(days[k][4], days[k][5] ,days[k][6], days[k][7])
+    plotsize(size_wg,size_hf, 0.0,'diurnal')
 
-        #initial hour
-        hi=days[k][3]
-        #final hour
-        hf=days[k][7]
+    #To plot 
+    fig  = plt.figure()
+    ax   = plt.axes()
 
-        ni,nf= down.data_n(idi,idf,data[k][:])
+    jj=0
 
+    if diurnal:
 
-        ##interval hour
-        ch      = 1
-
-        #mean diurnal function 
-        meanvar,hour = diurnal_main(data[k],z[k],vartoplot,idi,idf,k,hi,hf,ch)
-
-        ##plt.rcParams['figure.figsize'] = [2, 2]
-        # \showthe\columnwidth overleaf!
-        #columnwidth = 397.485# value given by Latex
-        #figsize=get_figsize(columnwidth, wf=0.28, hf=1.5)
-        #plt.rcParams['figure.figsize'] = figsize
-
-        size_wg = 0.28
-        size_wg = 0.33
-        size_hf = 1.50
-
-        if (explabel=='small'):
-
-            plotsize(size_wg,size_hf, 1.0,'diurnal')
-
-        else:
-
-            plotsize(size_wg,size_hf, 0.0,'diurnal')
-
-        #To plot 
-        fig  = plt.figure(nfig)
-        ax   = plt.axes()
-
-        jj=0
-
-        if diurnal:
-
-            for j in range(0,hf-hi+ch,ch):
+        for j in range(0,hf-hi+ch,ch):
     
-                line,col =color_hours(hour[j])
+            line,col =color_hours(hour[j])
 
-                plt.plot(meanvar[j,:] ,z[k][:]/1000.0,label='%d'%(hour[j]),color=col,linewidth=1.0,alpha=1.0,dashes=line)
+            plt.plot(meanvar[j,:] ,z[:]/1000.0,label='%d'%(hour[j]),color=col,linewidth=1.0,alpha=1.0,dashes=line)
     
-                jj=jj+1
+            jj=jj+1
 
 
-        if( name=='buoyancyflux'):
-            ax.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
-            ax.xaxis.get_offset_text().set_visible(False)
+    if( name=='buoyancyflux'):
 
-            #xFormatter = FormatStrFormatter('%.2f}')
-            #ax.xaxis.set_major_formatter(xFormatter)
-        #elif( name!='qt' ):
-        #   xFormatter = FormatStrFormatter('%.2f')
-        #   ax.xaxis.set_major_formatter(xFormatter)
-
-        elif( name=='relh' or name=='cld' or name=='qtflux'or name=='thetalflux'):
-            xFormatter = FormatStrFormatter('%.f')
-            ax.xaxis.set_major_formatter(xFormatter)
+        ax.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
+        ax.xaxis.get_offset_text().set_visible(False)
 
 
-        label=['mean',False]
+    elif( name=='relh' or name=='cld' or name=='qtflux'or name=='thetalflux'):
+        xFormatter = FormatStrFormatter('%.f')
+        ax.xaxis.set_major_formatter(xFormatter)
 
-        fn,ax=fown.splot_own(fig,ax,vartoplot[ni:nf,:],z[k][:]/1000.0,data[k],color[k],label)
 
+    label=['mean',False]
 
-        plt.axis([lim[k][0],lim[k][1],0,alt[k]])
+    fn,ax=fown.splot_own(fig,ax,vartoplot[ni:nf,:],z[:]/1000.0,data,color,label)
 
-        ax=label_plots(ax,leg_loc[k],[explabel[k],explabel2[k]])
+    plt.axis([lim[0],lim[1],0,alt])
 
-        label="%s_%s"%(name,explabel[k])
+    ax=label_plots(ax,leg_loc,[name,explabel2])
 
-        plt.savefig('%sdiurnal_%s.pdf'%(file_fig,label),bbox_inches='tight',dpi=1000, format='pdf')
+    label="%s"%(name)
 
-        k=k+1
+    plt.savefig('%sdiurnal_%s.pdf'%(file_fig,label),bbox_inches='tight',dpi=1000, format='pdf')
 
-        nfig=nfig+1
-
-        figs.append(fn)
-
-        axis.append(ax)
-
-    #if show:
-
-    #    plt.show()
-
-    #plt.close('all')
-
-    return fig,axis
+    return fig,ax
 
 def main_plot_diurnal_2var(var1,var2,data,z,days,alt,lim,color,name,explabel,explabel2,diurnal):
 
@@ -1162,13 +501,10 @@ def main_plot_diurnal_2var(var1,var2,data,z,days,alt,lim,color,name,explabel,exp
 
     for vartoplot in var1:
 
-        #Initial day
-
         idi     = dt.datetime(days[k][0], days[k][1] ,days[k][2], days[k][3]) 
         idf     = dt.datetime(days[k][4], days[k][5] ,days[k][6], days[k][7])
-        #initial hour
+
         hi=days[k][3]
-        #final hour
         hf=days[k][7]
 
         ni,nf= down.data_n(idi,idf,data[k][:])
@@ -1180,24 +516,11 @@ def main_plot_diurnal_2var(var1,var2,data,z,days,alt,lim,color,name,explabel,exp
         meanvar1,hour = diurnal_main(data[k],z[k],var1[k],idi,idf,k,hi,hf,ch)
         meanvar2,hour = diurnal_main(data[k],z[k],var2[k],idi,idf,k,hi,hf,ch)
 
-        # \showthe\columnwidth overleaf!
-        #columnwidth = 397.485# value given by Latex
-        #figsize=get_figsize(columnwidth, wf=0.33, hf=1.5)
-        #plt.rcParams['figure.figsize'] = figsize
-
         size_wg=0.33
         size_hf=1.5
 
-        if (explabel=='small'):
+        plotsize(size_wg,size_hf, 0.0,'diurnal')
 
-            plotsize(size_wg,size_hf, 1.0,'diurnal')
-
-        else:
-
-            plotsize(size_wg,size_hf, 0.0,'diurnal')
-
-        #To plot fn  = plt.figure(nfig)
-        #To plot 
         fn  = plt.figure(nfig)
         ax  = plt.axes()
 
@@ -1219,7 +542,6 @@ def main_plot_diurnal_2var(var1,var2,data,z,days,alt,lim,color,name,explabel,exp
         #fn,ax=fown.splot_own(nfig,var2[k][ni:nf,:],z[k][:]/1000.0,color[k])
         plt.axis([lim[k][0],lim[k][1],0,alt[k]])
 
-        #ax=label_plots(ax,[lim[k][0],alt[k]],[explabel[k],explabel2[k]],'upper right')
         ax.text(lim[k][0], 0.1, r' %s'%(explabel2[k]), fontsize=8, color='black')
 
         label="%s_%s"%(name,explabel[k])
@@ -1245,7 +567,9 @@ def main_plot_diurnal_2axis(var1,var2,data,z,days,alt,lim1,lim2,cor1,cor2,name,e
     axis2=[]
 
     nfig=0
+
     k=0
+
     for vartoplot in var1:
 
         #Initial day
@@ -1265,14 +589,11 @@ def main_plot_diurnal_2axis(var1,var2,data,z,days,alt,lim1,lim2,cor1,cor2,name,e
         meanvar1,hour = diurnal_main(data[k],z[k],vartoplot,idi,idf,k,hi,hf,ch)
         meanvar2,hour = diurnal_main(data[k],z[k],var2[k],idi,idf,k,hi,hf,ch)
 
-        # \showthe\columnwidth overleaf!
-        #columnwidth = 397.485# value given by Latex
-        #figsize=get_figsize(columnwidth, wf=0.33, hf=1.5)
-        #plt.rcParams['figure.figsize'] = figsize
-        size_wg=0.33
-        size_hf=1.5
+        size_wg = 0.28
+        size_wg = 0.33
+        size_hf = 1.50
 
-        if (explabel=='small'  or explabel=='large_nr' or explabel=='iop1'):
+        if (explabel=='small'):
 
             plotsize(size_wg,size_hf, 1.0,'diurnal')
 
@@ -1287,6 +608,8 @@ def main_plot_diurnal_2axis(var1,var2,data,z,days,alt,lim1,lim2,cor1,cor2,name,e
 
         jj=0
 
+        label=['mean',False]
+
         if diurnal:
 
             for j in range(0,hf-hi+ch,ch):
@@ -1299,10 +622,9 @@ def main_plot_diurnal_2axis(var1,var2,data,z,days,alt,lim1,lim2,cor1,cor2,name,e
 
                 jj=jj+1
 
-        fn=fown.splot_own_ax(fn,ax1,vartoplot[ni:nf,:],z[k][:]/1000.0,cor1[k])
+        fn,ax=fown.splot_own(fig,ax1,vartoplot[ni:nf,:],z[k][:]/1000.0,data[k],cor1[k],label)
 
-        fn=fown.splot_own_ax(fn,ax2,var2[k][ni:nf,:]   ,z[k][:]/1000.0,cor2[k])
-
+        fn,ax=fown.splot_own(fig,ax2,var2[k][ni:nf,:],z[k][:]/1000.0,data[k],cor2[k],label)
 
         ax1.axis([lim1[k][0],lim1[k][1],0,alt[k]])
         ax2.axis([lim2[k][0],lim2[k][1],0,alt[k]])
@@ -1319,6 +641,7 @@ def main_plot_diurnal_2axis(var1,var2,data,z,days,alt,lim1,lim2,cor1,cor2,name,e
         axis2.append(ax2)
 
         k=k+1
+
         nfig=nfig+1
 
 
@@ -1392,7 +715,7 @@ def main_plot_diurnal_3var(var1,var2,var3,data,z,days,alt,lim,color,name,explabe
 
     return fig,ax 
 
-def diurnal_main(data,z,var,idi,idf,k,hi,hf,ch): 
+def diurnal_main(data,z,var,idi,idf,hi,hf,ch): 
 
     ni,nf   = down.data_n(idi,idf,data)
 
