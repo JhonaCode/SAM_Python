@@ -145,24 +145,27 @@ def data_n_goa(idi,idf,data):
 #same reference hours, to plot in the same 
 #graph
 
-def data_to_reference(data): 
+def data_to_reference(data,day_0,year): 
 
     i=0
 
+    
     data_ref = data
+
+    #to change the month, if 0 does change
+    month_0= 0
 
     for d in data:
 
+        month   =   d.month-month_0
+        day     =   d.day-day_0
         hour    =   d.hour 
         minute  =   d.minute 
         second  =   d.second 
         micro   =   d.microsecond
 
-        data_ref[i] =   dt.datetime( 2022 ,1,1,hour,minute, second,micro)
 
-        #TO NOT PASS OF THE DAY
-        if hour>22 and minute >50 :
-            break
+        data_ref[i] =   dt.datetime( year ,month,day,hour,minute, second,micro)
 
         i=i+1
 
