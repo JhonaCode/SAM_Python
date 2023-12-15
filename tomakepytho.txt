@@ -1,0 +1,37 @@
+##########################
+Donwload: 
+##########################
+
+*pasta   sam_python 
+*arquivo setup 
+
+1) To make a dist 
+
+python setup.py bdist_wheel
+
+2) To install the  dist.
+
+pip install /sam_python/dist/wheelfile.whl
+
+
+##########################
+To update the pip install using twine and testpypi
+##########################
+
+To compress the dist using pyproject.toml
+
+1) python -m build
+
+To update  
+
+2) python -m twine upload --repository testpypi dist/*
+
+##[project.urls]
+##"Homepage"    = "https://github.com/JhonaCode/SAM_Python.git"
+##"Bug Tracker" = "https://github.com/JhonaCode/SAM_Python.git"
+
+
+usser=__token__
+pypi-AgENdGVzdC5weXBpLm9yZwIkYjgxNDNhODYtN2RhNy00ODFhLWIyMmYtYWVkODVmOWFiY2M3AAIqWzMsIjMyNTcyYmFhLTQzMWUtNGI4MS04ZDFjLTFmMDU2MjI0YWY4ZiJdAAAGIEfVkbyjzhxEFqg1bDmIbwOfWRLh4em8jjXYPqgNoXUz
+
+pip install --ignore-installed -i 
