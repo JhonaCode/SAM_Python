@@ -75,6 +75,23 @@ def parameters(name,figsize):
               'xtick.direction' : 'out',   
         }
 
+    if name=='diurnal2':
+    
+        parame = {
+              'figure.figsize'  : figsize,
+              'font.family'     : 'serif',
+              'font.sans-serif' : 'Helvetica',
+              'font.size'       : 8,
+              'font.weight'     : '400',
+              'lines.linewidth' : 1,
+              'legend.fontsize' : 6.0,
+              'axes.labelsize'  : 'small',
+              'axes.labelweight': '300',
+              'xtick.labelsize' : 'small',
+              'ytick.labelsize' : 'small',
+              'xtick.direction' : 'out',   
+        }
+
     if name=='2d':
 
         parame = {
