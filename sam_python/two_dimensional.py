@@ -1,6 +1,5 @@
 #from  Parameters_SAM_tupa import * 
 
-
 import  numpy as np
 
 import  cftime
@@ -12,13 +11,15 @@ import  matplotlib.pyplot   as plt
 # Python standard library datetime  module
 import  datetime as dt  
 
-#path of the ncfile
-from     files_direction import * 
-
 #import  campain_data  as cd
-import   sam_python.data_own       as down
+import  sam_python.data_own       as down
 
-import   sam_python.figure_own_2d  as fown
+import  sam_python.figure_own_2d  as fown
+
+import  sam_python.default_values as df
+
+#mUSH BE CHANGE, 
+from    files_direction     import file_fig 
 
 
 #def defaul_values(lim,maxv,minv,alt,maxh,var_to,name,color,explabel,leg_loc,diurnal,show): 
@@ -35,7 +36,7 @@ def default_values(ex,var,lim,alt,var_to,color,explabel,axis_on,show):
         var_to.append(1.0)              #[2]
         color.append('RdBu_r')          #[3]
         explabel.append(name)           #[4]
-        axis_on.append((True,False,False,0.35,0.00))##[5]
+        axis_on.append((True,False,False,False,0.35,0.00))##[5]
         show.append(True)               #[6]
 
         #defaul=[lim,alt,var_to,color,explabel2,leg_loc,diurnal,show]
@@ -45,77 +46,81 @@ def default_values(ex,var,lim,alt,var_to,color,explabel,axis_on,show):
         return default
 
 
-def plot2d_contour(ex,contour=[],alt=[],explabel=[],color=[],var_to=[],axis_on=[],show=[]):
+def plot2d_contour(exp,var=[],contour=[],alt=[],days=[],explabel=[],explabel2=[],color=[],var_to=[],axis_on=[],show=[]):
 
+    #if var:
+    #    exp_var=var
+    #else:
+    #    exp_var=ex.var_to_plot
 
-    print('_________________')
-    print('________%s_______'%(ex.name))
-    print('_________________')
+    exp_var=var
 
-    exp_var=ex.var_to_plot
-    days=ex.datei+ex.datef
+    k=0
+    for ex in exp:
 
-    i=0
+        if k==0:
+            if not var:
+                exp_var=ex.var2d
 
-    for vtex in exp_var:
-
-        var=getattr(ex, vtex)
-        
-        maxh  = np.max(ex.z[:]/1000.0)
-        minv  = np.min(var)
-        maxv  = np.max(var)
-
-        name  = var.name
-
-        defaul= default_values(ex,var,contour,alt,var_to,color,explabel,axis_on,show)
-
-        print('')
         print('_________________')
-        print("_______%s________"%(var.long_name) )
+        print('________%s_______'%(ex.name))
         print('_________________')
 
-        days    = ex.datei+ex.datef
+        j=0
+        for vtex in exp_var:
 
-        idi     = dt.datetime(days[0], days[1] ,days[2], days[3]) 
-        idf     = dt.datetime(days[4], days[5] ,days[6], days[7])
+            if days:
+
+                idi     = dt.datetime(days[k][j][0][0], days[k][j][0][1] ,days[k][j][0][2], days[k][j][0][3],days[k][j][0][4],0) 
+                idf     = dt.datetime(days[k][j][1][0], days[k][j][1][1] ,days[k][j][1][2], days[k][j][1][3],days[k][j][1][4],0)
+
+                ni,nf= down.data_n(idi,idf,ex.date[:])
+
+                if ni>len(ex.date):
+                    ni=ni-1
+
+            else:
+                days=ex.datei+ex.datef
+                ni,nf= down.data_n(ex.datei,ex.datef,ex.date[:])
+
+
+            var=getattr(ex, vtex)
+
+            lim,alt,var_to,color,explabel1,explabel2,axis_on,show = df.default_values_2d(ex,vtex,contour,alt,var_to,color,explabel,explabel2,axis_on,show)
+
+
+            li,lf= down.level_n(alt[k][j][0],alt[k][j][1],ex.z[:]/1000.0)
+
+            #To scale de var
+            var=var[ni:nf,li:lf]*var_to[k][j]
+            date=ex.date[ni:nf]
+            z=ex.z[li:lf]/1000.0
+
+            fn,ax   = fown.d2_plot_im_diff(ex,date,z,var,contour[k][j],explabel[k][j],'lower',color[k][j],axis_on[k][j])
             
-        #Limits of time date
-        ni,nf= down.data_n(idi,idf,ex.data[:])
+            #ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
 
-        # To found the maximum date, even 
-        # that required date not exists
-        if nf==0:
+            ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
 
-            nf=data.shape[0]-1
+            #ax.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
 
-        li,lf= down.level_n(0.0,defaul[1][i],ex.z[:]/1000.0)
+            if(axis_on[k][j][1]):
+                plt.xlabel(r'Hours LT (UTC-4)') 
+            if(axis_on[k][j][2]):
+                plt.ylabel(r'z [km]')
 
-        #To scale de var
-        var=var[:]*defaul[2][i]
+            plt.savefig('%s/%s_2d_%s.pdf'%(file_fig,ex.name,vtex), format='pdf',bbox_inches='tight', dpi=1000)
+            
+            #print(defaul )
+            if show[k][j]:
 
-        fn,ax   = fown.d2_plot_ctn(ex.data,ex.z[:]/1000.0,var,contour[i],ni,nf,li,lf,explabel[i],'lower',defaul[3][i])
-        
-        ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
+                plt.show()
 
-        ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
-
-        #ax.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
-        
-        plt.ylabel(r'z [km]') 
-        plt.xlabel(r'Local Time (UTC-4)') 
-
-        plt.savefig('%s%s_2d_%s.pdf'%(file_fig,name,ex.name), format='pdf',bbox_inches='tight', dpi=1000)
-        
-
-        #print(defaul )
-        if defaul[5][i]:
-
-            plt.show()
-
-        i+=1
+            j+=1
+        k+=1
 
 
-    plt.close('all')
+        plt.close('all')
 
     return 
 
@@ -127,7 +132,7 @@ def plot2d_im_diff(ex1,ex2,variables,days=[],alt=[],color=[],explabel=[],var_to=
 
 
     #Experimento base 
-    ex=ex2
+    ex=ex1
 
     j=0
     for var in variables:
@@ -178,7 +183,6 @@ def plot2d_im_diff(ex1,ex2,variables,days=[],alt=[],color=[],explabel=[],var_to=
             n2f=n2f+1
 
 
-
         var1     = ex1.nc_f[var][n1i:n1f,:]
         var2     = ex2.nc_f[var][n2i:n2f,:]
 
@@ -200,15 +204,19 @@ def plot2d_im_diff(ex1,ex2,variables,days=[],alt=[],color=[],explabel=[],var_to=
 
         #defaul=[lim,alt,var_to,color,explabel,axin_on,show]
 
+
         fn,ax=fown.d2_plot_im_diff(ex,date,z,diff,default[0][j],default[4][j],'lower',default[3][j],default[5][j])
         
         #ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
 
         ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
 
-        plt.xlabel(r'Hours LT (UTC-4)') 
+        if(default[5][j][1]):
+            plt.xlabel(r'Hours LT (UTC-4)') 
+        if(default[5][j][2]):
+                plt.ylabel(r'z [km]')
 
-        plt.savefig('%s/diff_%s_2d_%s.pdf'%(file_fig,var,ex1.name+'_'+ex2.name), format='pdf',bbox_inches='tight', dpi=200)
+        plt.savefig('%s/diff_%s_2d_%s.pdf'%(file_fig,var,ex1.name+'_'+ex2.name), format='pdf',bbox_inches='tight', dpi=1000)
 
 
         if default[6][j]:
@@ -221,316 +229,6 @@ def plot2d_im_diff(ex1,ex2,variables,days=[],alt=[],color=[],explabel=[],var_to=
     return
         
 
-
-def plot2d_im_massflux_diff(exp,days,alt,explabel,explabel2,hours,contour,axis_on,show):
-
-    print('_________________')
-    print('MASSflux_diff')
-    print('_________________')
-
-    nivel1  = 0.0
-    nivel2  = alt[0]
-    
-    idi     = dt.datetime(days[i][0], days[i][1] ,days[i][2], days[i][3]) 
-    idf     = dt.datetime(days[i][4], days[i][5] ,days[i][6], days[i][7])
-    
-    var1     = exp[0].MCUP[:]
-    var2     = exp[1].MCUP[:]
-
-    var      = var2-var1
-    
-    fn,ax=fown.d2_plot_im_ctn(exp[0],days[0],exp[0].time,exp[0].data,var,exp[0].z[:]/1000.0,contour[0],idi,idf,nivel1,nivel2,explabel[0],explabel2[0],'lower','RdBu_r',axis_on[0])
-
-    
-    ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
-
-    ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
-
-    plt.xlabel(r'Local Time (UTC-4)') 
-    
-    plt.savefig('%smassflux_2d_%s.pdf'%(file_fig,explabel[0]), format='pdf',bbox_inches='tight', dpi=1000)
-    
-    if show:
-        plt.show()
-
-def plot2d_im_wobs_diff(exp,days,alt,explabel,explabel2,hours,contour,axis_on,show):
-
-    print('_________________')
-    print('WOBS_diff')
-    print('_________________')
-
-    nivel1  = 0.0
-    nivel2  = alt[0]
-    
-    idi     = dt.datetime(days[i][0], days[i][1] ,days[i][2], days[i][3]) 
-    idf     = dt.datetime(days[i][4], days[i][5] ,days[i][6], days[i][7])
-    
-    var1     = exp[0].WOBS[:]*100.0
-    var2     = exp[1].WOBS[:]*100.0
-
-    var      = var2-var1
-    
-    fn,ax=fown.d2_plot_im_ctn(exp[0],days[0],exp[0].time,exp[0].data,var,exp[0].z[:]/1000.0,contour[0],idi,idf,nivel1,nivel2,explabel[0],explabel2[0],'lower','RdBu_r',axis_on[0])
-
-    
-    ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
-
-    ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
-
-    plt.xlabel(r'Local Time (UTC-4)') 
-    
-    plt.savefig('%swobs_2d_%s.pdf'%(file_fig,explabel[0]), format='pdf',bbox_inches='tight', dpi=1000)
-    
-    if show:
-        plt.show()
-
-def plot2d_im_relh_diff(exp,days,alt,explabel,explabel2,hours,contour,axis_on,show):
-
-    print('_________________')
-    print('RH_diff')
-    print('_________________')
-
-    nivel1  = 0.0
-    nivel2  = alt[0]
-    
-    idi     = dt.datetime(days[i][0], days[i][1] ,days[i][2], days[i][3]) 
-    idf     = dt.datetime(days[i][4], days[i][5] ,days[i][6], days[i][7])
-    
-    var1     = exp[0].RELH[:]
-    var2     = exp[1].RELH[:]
-
-    var      = var2-var1
-    
-    fn,ax=fown.d2_plot_im_ctn(exp[1],days[1],exp[1].time,exp[1].data,var,exp[1].z[:]/1000.0,contour[0],idi,idf,nivel1,nivel2,explabel[0],explabel2[0],'lower','RdBu_r',axis_on[0])
-
-    
-    ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
-
-    ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
-
-    plt.xlabel(r'Local Time (UTC-4)') 
-    
-    plt.savefig('%srelh_2d_%s.pdf'%(file_fig,explabel[0]), format='pdf',bbox_inches='tight', dpi=1000)
-    
-    if show:
-        plt.show()
-
-def plot2d_im_relh(exp,days,alt,explabel,explabel2,hours,contour,axis_on,show):
-
-    print('_________________')
-    print('RH')
-    print('_________________')
-
-    #number of experiment
-    nexp= len(exp)
-
-    fig=[]
-    
-    i=0
-
-    for ex in exp:
-
-        nivel1  = 0.0
-        
-        nivel2  = alt[i]
-        
-        
-        idi     = dt.datetime(days[i][0], days[i][1] ,days[i][2], days[i][3]) 
-        idf     = dt.datetime(days[i][4], days[i][5] ,days[i][6], days[i][7])
-
-        var     = ex.RELH
-        
-        fn,ax=fown.d2_plot_im_ctn(ex,days[i],ex.time,ex.data,var,ex.z[:]/1000.0,contour[i],idi,idf,nivel1,nivel2,explabel[i],explabel2[i],'lower','RdBu_r',axis_on[i])
-
-        
-        ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
-
-        ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
-
-        
-        #plt.ylabel(r'z [km]') 
-        
-        plt.xlabel(r'Local Time (UTC-4)') 
-        
-        plt.savefig('%srelh_2d_%s.pdf'%(file_fig,explabel[i]), format='pdf',bbox_inches='tight', dpi=1000)
-        
-        fig.append(fn)
-        
-        i=i+1
-
-        if show:
-            plt.show()
-
-def plot2d_im_wobs(exp,days,alt,explabel,explabel2,hours,contour,axis_on,show):
-
-    print('_________________')
-    print('W_obs')
-    print('_________________')
-
-    #number of experiment
-    nexp= len(exp)
-
-    fig=[]
-    
-    i=0
-
-    for ex in exp:
-
-        nivel1  = 0.0
-        
-        nivel2  = alt[i]
-        
-        idi     = dt.datetime(days[i][0], days[i][1] ,days[i][2], days[i][3]) 
-        idf     = dt.datetime(days[i][4], days[i][5] ,days[i][6], days[i][7])
-        
-        var     = ex.WOBS[:]*100.0  #100to cm/s  #%
-        
-        fn,ax=fown.d2_plot_im_ctn(ex,days[i],ex.time,ex.data,var,ex.z[:]/1000.0,contour[i],idi,idf,nivel1,nivel2,explabel[i],explabel2[i],'lower','RdBu_r',axis_on[i])
-
-        
-        ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
-
-        ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
-
-        
-        #plt.ylabel(r'z [km]') 
-        
-        plt.xlabel(r'Local Time (UTC-4)') 
-        
-        plt.savefig('%swobs_2d_%s.pdf'%(file_fig,explabel[i]), format='pdf',bbox_inches='tight', dpi=1000)
-        
-        fig.append(fn)
-        
-        i=i+1
-
-        if show:
-            plt.show()
-def plot2d_im_wsup_down(exp,days,alt,explabel,explabel2,hours,contour,axis_on,show):
-
-    print('_________________')
-    print('WSUP ')
-    print('_________________')
-
-    #number of experiment
-    nexp= len(exp)
-
-
-    fig=[]
-    
-    i=0
-
-    for ex in exp:
-
-        nivel1=0.0
-        
-        nivel2=alt[i]
-        
-        idi     = dt.datetime(days[i][0], days[i][1] ,days[i][2], days[i][3]) 
-        idf     = dt.datetime(days[i][4], days[i][5] ,days[i][6], days[i][7])
-        
-        var= ex.WSDN[:,:]
-        
-        fn,ax=fown.d2_plot_im_ctn(ex,days[i],ex.time,ex.data,var,ex.z[:]/1000.0,contour[i],idi,idf,nivel1,nivel2,explabel[i],explabel2[i],'lower','whbuyl',axis_on[i])
-
-        ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
-        
-        ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
-        #plt.ylabel(r'z [km]') 
-        plt.xlabel(r'Local Time (UTC-4)') 
-        
-        plt.savefig('%swdowndraf_2d_%s.pdf'%(file_fig,explabel[i]), format='pdf',bbox_inches='tight', dpi=1000)
-        
-        fig.append(fn)
-
-        i=i+1
-
-        if show:
-            plt.show()
-        
-
-def plot2d_im_ql(exp,days,alt,explabel,explabel2,hours,contour,axis_on,show):
-
-    print('_________________')
-    print('Liquid Water QC ')
-    print('_________________')
-
-    #number of experiment
-    nexp= len(exp)
-
-
-    fig=[]
-    
-    i=0
-
-    for ex in exp:
-
-        nivel1=0.0
-        
-        nivel2=alt[i]
-        
-        idi     = dt.datetime(days[i][0], days[i][1] ,days[i][2], days[i][3]) 
-        idf     = dt.datetime(days[i][4], days[i][5] ,days[i][6], days[i][7])
-        
-        var= ex.QC[:,:]
-        
-        fn,ax=fown.d2_plot_im_ctn(ex,days[i],ex.time,ex.data,var,ex.z[:]/1000.0,contour[i],idi,idf,nivel1,nivel2,explabel[i],explabel2[i],'lower','whbuyl',axis_on[i])
-
-        ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
-        
-        ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
-        #plt.ylabel(r'z [km]') 
-        plt.xlabel(r'Local Time (UTC-4)') 
-        
-        plt.savefig('%sql_2d_%s.pdf'%(file_fig,explabel[i]), format='pdf',bbox_inches='tight', dpi=1000)
-        
-        fig.append(fn)
-        
-        i=i+1
-
-        if show:
-            plt.show()
-
-def plot2d_im_mass_flux(exp,days,alt,explabel,explabel2,hours,contour,axis_on,show):
-
-    print('_________________')
-    print('Mass Flux')
-    print('_________________')
-
-    #number of experiment
-    nexp= len(exp)
-
-
-    fig=[]
-    
-    i=0
-
-    for ex in exp:
-
-        nivel1=0.0
-        nivel2=alt[i]
-        
-        idi     = dt.datetime(days[i][0], days[i][1] ,days[i][2], days[i][3]) 
-        idf     = dt.datetime(days[i][4], days[i][5] ,days[i][6], days[i][7])
-        
-        var= ex.MCUP[:,:]#%
-        
-        fn,ax=fown.d2_plot_im_ctn(ex,days[i],ex.time,ex.data,var,ex.z[:]/1000.0,contour[i],idi,idf,nivel1,nivel2,explabel[i],explabel2[i],'lower','whbuyl',axis_on[i])
-
-        ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
-
-        #plt.ylabel(r'z [km]') 
-        plt.xlabel(r'Local Time (UTC-4)') 
-        
-        plt.savefig('%smass_flux_2d_%s.pdf'%(file_fig,explabel[i]), format='pdf',bbox_inches='tight', dpi=1000)
-
-        plt.savefig('%smass_flux_2d_%s.png'%(file_fig,explabel[i]), format='png',bbox_inches='tight', dpi=1000)
-        
-        fig.append(fn)
-        
-        i=i+1
-
-        if show:
-            plt.show()
 
 def plot2d_media_ctn(exp,days,alt,explabel,hours,contour,axis_on,show):
 

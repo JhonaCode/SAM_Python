@@ -49,12 +49,17 @@ def data_n(idi,idf,data):
         if data[i]>=idi and b1==0: 
             ni =i  
             b1 =1
+            print("From:")
             print("Data1:", data[i],i)
 
         if data[i]>=idf and b2==0:  
             nf =i  
             b2 =1
+            print("To:")
             print("Data2:", data[i],i) 
+    if nf==0:
+
+        nf=data.shape[0]-1
 
     return ni,nf
 
@@ -79,6 +84,13 @@ def level_n(idi,idf,data):
             nf =i  
             b2 =1
             print("Level2:", data[i]) 
+
+    # To found the maximum date, even 
+    # that required date not exists
+    if nf==0:
+
+        nf=data.shape[0]-1
+
     return ni,nf
 
 def pressure_n(idi,idf,data,exp): 

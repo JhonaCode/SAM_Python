@@ -1,6 +1,38 @@
 import  numpy               as np
+##################################
 
-######################3333
+##################################
+def default_values_2d(ex,var,lim,alt,var_to,color,explabel1,explabel2,axis_on,show): 
+
+    #Getting the Defaul values
+    maxv=np.max(ex.nc_f[var])
+    minv=np.min(ex.nc_f[var])
+
+    minh=np.min(ex.z[:]/1000.0)
+    maxh=np.max(ex.z[:]/1000.0)
+
+    name=ex.name
+
+    lim.append([[minv,maxv]])
+    alt.append([[minh,maxh]])         
+
+    var_to.append([1])
+
+    color.append('RdBu_r')
+
+    explabel1.append([name])
+    explabel2.append([''])
+
+    ####bar ,x,y axis, top_lfc_pbl,size,cm a mais do grafico
+    a1          =  [(True,True,True ,True,0.35,1.34)]
+    axis_on.append([a1])
+
+    show.append(['True'])
+
+    return lim,alt,var_to,color,explabel1,explabel2,axis_on,show
+##################################
+
+##################################
 def default_values(ex,var,lim,alt,var_to,color,explabel1,explabel2,leg_loc,diurnal,show): 
 
     #Getting the Defaul values
@@ -131,67 +163,3 @@ def check_list(default):
 
     return default
 
-
-def default(ex,var,lim,alt,var_to,color,explabel2,leg_loc,diurnal,show): 
-
-    #Getting the Defaul values
-    maxv=np.max(ex.nc_f[var])
-    minv=np.min(ex.nc_f[var])
-    maxh=np.max(ex.z[:]/1000.0)
-    name=ex.name
-    #To check if the list is empty
-    if not lim:
-        lim=[minv,maxv]         #[0]
-    else:
-        lim=lim
-
-    if not alt:
-        alt=maxh                #[1]
-    else:
-        alt=alt
-
-    if not var_to:
-        var_to=1                #[2]
-    else:
-        var_to=var_to
-
-    if not color:
-        color='red'            #[3]
-    else:
-        color=color
-
-    if not explabel2:
-        explabel2=name          #[4]
-    else:
-        explabel2=explabel2
-
-    if not leg_loc:
-        leg_loc=[(maxv-minv)/4.0+minv,maxh*0.85,True,True] #[5]
-    else:
-        leg_loc=leg_loc
-
-    if not diurnal:
-        diurnal=True           #[6]
-    else:
-        diurnal=diurnal
-
-    if not show:
-        show=True               #[7]
-    else:
-        show=show
-
-
-    #lim=[minv,maxv]         #[0]
-    #alt=maxh                #[1]
-    #var_to=1                #[2]
-    #color='red'             #[3]
-    #explabel2=name          #[4]
-    #leg_loc=[(maxv-minv)/4.0+minv,maxh*0.85,True,True] #[5]
-    ##leg_loc.append([maxv*0.3,maxh*0.85,True,True]) #[5]
-    #diurnal=True            #[6]
-    #show=True               #[7]
-
-    defaul=[lim,alt,var_to,color,explabel2,leg_loc,diurnal,show]
-
-
-    return defaul
