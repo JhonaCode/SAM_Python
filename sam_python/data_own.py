@@ -23,6 +23,24 @@ import datetime as dt
 #    ni:initial interval data indix
 #    ni: final interval data indix
 
+def data_ind(idi,data): 
+
+    #indices achados
+    ni=0
+
+    #banderas 
+    b1=0
+
+    for i in range(0,data.shape[0]-1):
+
+        if data[i]>=idi and b1==0: 
+            ni =i  
+            b1 =1
+            print("Date found:")
+            print("Data1:", data[i],i)
+
+    return ni
+
 def data_n(idi,idf,data): 
 
     #idi = dt.datetime(2014, 9, 26, 1) 

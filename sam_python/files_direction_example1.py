@@ -1,5 +1,3 @@
-# TO CONTROL THE COMPUTER DIRECTION 
-
 import os
 
 #Repository location 

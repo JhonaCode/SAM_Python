@@ -97,9 +97,9 @@ def temporal_plot_exp(exp,var_to=0,exp_label=0,plot_def=0,lim=0,color=0,show=Tru
     size_hf = 0.5
     plotsize(size_wg,size_hf, 0.0,'diurnal')
 
-
+    #print(var_to,'xxxxxxxxxxxxx')
     k=0
-    for vn in exp[k].var_to_plot:
+    for vn in exp[k].var1d:
 
         #To plot 
         fig  = plt.figure()
@@ -111,7 +111,7 @@ def temporal_plot_exp(exp,var_to=0,exp_label=0,plot_def=0,lim=0,color=0,show=Tru
 
             print('For '+ex.name+' ploting '+vn)
 
-            ni,nf= down.data_n(ex.datei,ex.datef,ex.data[:])
+            ni,nf= down.data_n(ex.datei,ex.datef,ex.date[:])
 
             ##Extract the variables to plot
             if var_to==0:
@@ -119,11 +119,12 @@ def temporal_plot_exp(exp,var_to=0,exp_label=0,plot_def=0,lim=0,color=0,show=Tru
 
             else:
                 var=ex.nc_f[vn][ni:nf]*var_to[k][j]
+                #print(ex.nc_f[vn].units,var_to[k][j],'xxxxxxxx')
 
-            data= ex.data[ni:nf]
+            date= ex.date[ni:nf]
 
             #to make the plot with the variables defined
-            fig,ax=temporal_plot(fig,ax,data,var,k=j,exp_label=exp_label[k][j],color=color[j])
+            fig,ax=temporal_plot(fig,ax,date,var,k=j,exp_label=exp_label[k][j],color=color[j])
 
             exname=exname+'_'+ex.name
 
@@ -194,7 +195,7 @@ def plot_temporal_axis(fig,ax,ex,lim=0,interval=0,plot_def=0):
 
     if interval==0:
 
-        interval=int(ex.data.shape[0]/4)
+        interval=int(ex.date.shape[0]/4)
 
     locatormax = mdates.HourLocator(interval=interval)
     locatormin = mdates.HourLocator(interval=int(interval/2))
@@ -277,9 +278,9 @@ def temporal_cases(exp,days,exp_label,exp_label2,exp_label_cape,lim):
         idi     = dt.datetime(days[k][0],days[k][1],days[k][2], days[k][3]) 
         idf     = dt.datetime(days[k][4],days[k][5],days[k][6], days[k][7]) 
 
-        size= ex.data.shape[0]
+        size= ex.date.shape[0]
 
-        di,df= down.data_n(idi,idf,ex.data)
+        di,df= down.data_n(idi,idf,ex.date)
 
 
         #cin and cape from other program

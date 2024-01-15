@@ -46,7 +46,7 @@ def default_values(ex,var,lim,alt,var_to,color,explabel,axis_on,show):
         return default
 
 
-def plot2d_contour(exp,var=[],contour=[],alt=[],days=[],explabel=[],explabel2=[],color=[],var_to=[],axis_on=[],show=[]):
+def plot2d_contour(exp,var=[],contour=[],alt=[],days=[],explabel1=[],explabel2=[],color=[],var_to=[],axis_on=[],show=[]):
 
     #if var:
     #    exp_var=var
@@ -62,12 +62,20 @@ def plot2d_contour(exp,var=[],contour=[],alt=[],days=[],explabel=[],explabel2=[]
             if not var:
                 exp_var=ex.var2d
 
-        print('_________________')
-        print('________%s_______'%(ex.name))
-        print('_________________')
+        print('\n')
+        print('_______________________________________')
+        print('       ________%s_______'%(ex.name))
+        print('_______________________________________')
+        print('\n')
+
+        lim,alt,var_to,color,explabel1,explabel2,axis_on,show = df.default_values_2d(exp,exp_var,contour,alt,var_to,color,explabel1,explabel2,axis_on,show,k)
+
 
         j=0
         for vtex in exp_var:
+
+            #print(explabel1,explabel1[k][j],k)
+            #exit()
 
             if days:
 
@@ -80,13 +88,11 @@ def plot2d_contour(exp,var=[],contour=[],alt=[],days=[],explabel=[],explabel2=[]
                     ni=ni-1
 
             else:
-                days=ex.datei+ex.datef
+                #days=ex.datei+ex.datef
                 ni,nf= down.data_n(ex.datei,ex.datef,ex.date[:])
 
 
             var=getattr(ex, vtex)
-
-            lim,alt,var_to,color,explabel1,explabel2,axis_on,show = df.default_values_2d(ex,vtex,contour,alt,var_to,color,explabel,explabel2,axis_on,show)
 
 
             li,lf= down.level_n(alt[k][j][0],alt[k][j][1],ex.z[:]/1000.0)
@@ -96,7 +102,8 @@ def plot2d_contour(exp,var=[],contour=[],alt=[],days=[],explabel=[],explabel2=[]
             date=ex.date[ni:nf]
             z=ex.z[li:lf]/1000.0
 
-            fn,ax   = fown.d2_plot_im_diff(ex,date,z,var,contour[k][j],explabel[k][j],'lower',color[k][j],axis_on[k][j])
+
+            fn,ax   = fown.d2_plot_im_diff(ex,date,z,var,contour[k][j],explabel1[k][j],'lower',color[k][j],axis_on[k][j])
             
             #ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
 
@@ -227,7 +234,153 @@ def plot2d_im_diff(ex1,ex2,variables,days=[],alt=[],color=[],explabel=[],var_to=
         j+=1
 
     return
+
+def plot2d_wind(exp,lev,contour=[],xlim=[],ylim=[],days=[],explabel=[],explabel2=[],color=[],var_to=[],axis_on=[],leg_loc=[],show=[]):
+
+    #if var:
+    #    exp_var=var
+    #else:
+    #    exp_var=ex.var_to_plot
+
+
+    k=0
+    j=0
+    for ex in exp:
+
+        print('_________________')
+        print('________%s_______'%(ex.name))
+        print('_________________')
+
+        U='U%s'%(lev[k])
+        V='V%s'%(lev[k])
+        var1=getattr(ex, U)
+        var2=getattr(ex, V)
+
+        if days:
+
+            idi = dt.datetime(days[k][j][0], days[k][j][1] ,days[k][j][2], days[k][j][3],days[k][j][4],0) 
+
+            ni= down.data_ind(idi,ex.date[:])
+
+        else:
+            days=ex.datei
+            ni= down.data_n(ex.datei,ex.date[:])
         
+        #module of velocity 
+        #MF      =   np.sqrt(var1[:]**2+var2[:]**2)
+        MF      =getattr(ex, V)
+
+        lim,xlim,ylim,var_to,color,explabel1,explabel2,axis_on,leg_loc,show = df.default_values_horizontal(ex,MF,contour,xlim,ylim,var_to,color,explabel,explabel2,axis_on,leg_loc,show)
+
+
+        #To scale de var
+        var1=var1[ni,:,:]*var_to[k][j]
+        var2=var2[ni,:,:]*var_to[k][j]
+        x  =ex.x[:]/1000.0
+        y =ex.y[:]/1000.0
+
+
+        fn,ax   = fown.d2_plot_wind(ex,x,y,var1,var2,contour[k][j],xlim[k][j],ylim[k][j],explabel[k][j],'lower',color[k][j],axis_on[k][j],leg_loc[k][j])
+
+        #ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
+
+        #ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
+
+        if(axis_on[k][j][1]):
+            plt.xlabel(r'x [km]') 
+        if(axis_on[k][j][2]):
+            plt.ylabel(r'y [km]')
+
+        plt.savefig('%s/%s_2d_horizontal_U%s.pdf'%(file_fig,ex.name,lev[k]), format='pdf',bbox_inches='tight', dpi=1000)
+        
+        #print(defaul )
+        if show[k][j]:
+
+            plt.show()
+
+        k+=1
+
+        plt.close('all')
+
+    return 
+        
+def plot2d_horizontal(exp,var=[],contour=[],xlim=[],ylim=[],days=[],explabel=[],explabel2=[],color=[],var_to=[],axis_on=[],leg_loc=[],show=[]):
+
+    #if var:
+    #    exp_var=var
+    #else:
+    #    exp_var=ex.var_to_plot
+
+    exp_var=var
+
+
+    k=0
+    for ex in exp:
+
+        if k==0:
+            if not var:
+                exp_var=ex.var2d
+
+        print('_________________')
+        print('________%s_______'%(ex.name))
+        print('_________________')
+
+        j=0
+        for vtex in exp_var:
+
+
+            if days:
+
+                idi = dt.datetime(days[k][j][0], days[k][j][1] ,days[k][j][2], days[k][j][3],days[k][j][4],0) 
+
+                ni= down.data_ind(idi,ex.date[:])
+
+            else:
+                days=ex.datei
+                ni= down.data_n(ex.datei,ex.date[:])
+
+
+            var=getattr(ex, vtex)
+
+            lim,xlim,ylim,var_to,color,explabel1,explabel2,axis_on,leg_loc,show = df.default_values_horizontal(ex,vtex,contour,xlim,ylim,var_to,color,explabel,explabel2,axis_on,leg_loc,show)
+
+
+            #li,lf= down.level_n(alt[k][j][0],alt[k][j][1],ex.z[:]/1000.0)
+
+            #To scale de var
+            #var=var[ni:nf,li:lf]*var_to[k][j]
+            var=var[ni,:,:]*var_to[k][j]
+            #x  =ex.x[ni:nf]
+            x  =ex.x[:]/1000.0
+            #zy =ex.z[li:lf]/1000.0
+            y =ex.y[:]/1000.0
+
+
+            fn,ax   = fown.d2_plot_horizontal(ex,x,y,var,contour[k][j],xlim[k][j],ylim[k][j],explabel[k][j],'lower',color[k][j],axis_on[k][j],leg_loc[k][j])
+
+            #ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
+
+            #ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
+
+            if(axis_on[k][j][1]):
+                plt.xlabel(r'x [km]') 
+            if(axis_on[k][j][2]):
+                plt.ylabel(r'y [km]')
+
+            #plt.savefig('%s/%s_2d_horizontal_%s.pdf'%(file_fig,ex.name,vtex), format='pdf',bbox_inches='tight', dpi=1000)
+            
+            #print(defaul )
+            if show[k][j]:
+
+                plt.show()
+
+            j+=1
+
+        k+=1
+
+        plt.close('all')
+
+    return 
 
 
 def plot2d_media_ctn(exp,days,alt,explabel,hours,contour,axis_on,show):

@@ -28,7 +28,7 @@ import sam_python.default_values as df
 
 
 
-def label_plots(ax,legend,explabel,xlabel): 
+def label_plots(ax,legend,explabel,explabel2,xlabel): 
 
 ###Text position x
 #legend[0]=0.0
@@ -39,7 +39,10 @@ def label_plots(ax,legend,explabel,xlabel):
 ###hours label
 #legend[3]=True
 
-    ax.text(legend[0], legend[1], r' %s'%(explabel), fontsize=8, color='black')
+
+    ax.text(legend[0][0], legend[0][1], r' %s'%(explabel), fontsize=8, color='black')
+
+    ax.text(legend[1][0], legend[1][1], r' %s'%(explabel2), fontsize=8, color='black')
 
     if( legend[3]==True):
         plt.ylabel(r'z [km]') 
@@ -81,7 +84,9 @@ def diurnal_hours_sam(ex,var,explabel=[],explabel2=[],alt=[],lim=[],var_to=[],co
 
     data=ex.nc_f[var][:,:]*defaul[2]
     
-    figs,axis = main_plot_diurnal_new(ex,data,date,z,defaul[1],defaul[0],defaul[3],name+'_'+var,defaul[4],defaul[5],defaul[6])
+    #lines per hour
+    ch=2
+    figs,axis = main_plot_diurnal_new(ex,data,ch,date,z,defaul[1],defaul[0],defaul[3],name+'_'+var,defaul[4],defaul[5],defaul[6])
 
     if defaul[7]:
 
@@ -92,7 +97,7 @@ def diurnal_hours_sam(ex,var,explabel=[],explabel2=[],alt=[],lim=[],var_to=[],co
 
     return 
 
-def diurnal_hours_exp_var_sam(exp,variables,explabel=[],alt=[],lim=[],var_to=[],color=[],leg_loc=[],diurnal=[],show=[]): 
+def diurnal_hours_exp_var_sam(exp,variables,explabel=[],explabel2=[],alt=[],lim=[],var_to=[],color=[],leg_loc=[],diurnal=[],show=[]): 
 
 
     k=0
@@ -118,13 +123,17 @@ def diurnal_hours_exp_var_sam(exp,variables,explabel=[],alt=[],lim=[],var_to=[],
             name=ex.name
             date=ex.date
 
-            defaul=check_list(ex,var,lim,alt,var_to,color,explabel,leg_loc,diurnal,show,k,j)
+            lim,alt,var_to,color,explabel1,explabel2,leg_loc,diurnal,show=df.default_values(exp,variables,lim,alt,var_to,color,explabel,explabel2,leg_loc,diurnal,show,k)
 
-            data=ex.nc_f[var][:,:]*defaul[2]
+            data=ex.nc_f[var][:,:]*var_to[k][j]
             #
-            figs,axis = main_plot_diurnal_new(ex,data,date,z,defaul[1],defaul[0],defaul[3],name+'_'+var,defaul[4],defaul[5],defaul[6])
 
-            if defaul[7]:
+            #(ex,vartoplot,date,z,alt,lim,color,name,explabel2,leg_loc,diurnal)
+            #lines per hour
+            ch=2
+            figs,axis = main_plot_diurnal_new(ex,data,ch,date,z,alt[k][j],lim[k][j],color[k][j],name+'_'+var,explabel2[k][j],leg_loc[k][j],diurnal[k][j])
+
+            if show[k][j]:
 
                 plt.show()
 
@@ -138,7 +147,7 @@ def diurnal_hours_exp_var_sam(exp,variables,explabel=[],alt=[],lim=[],var_to=[],
     return 
 
 ###To plot a defined hour of the experiment. 
-def diurnal_exp_var_hour_sam(exp,variables,hour,fig_name,explabel=[],explabel2=[],xlabel=[],alt=[],lim=[],var_to=[],color=[],leg_loc=[],diurnal=[],show=[]): 
+def diurnal_exp_var_hour_sam(exp,variables,hour,fig_name,explabel=[],explabel2=[],explabel3=[],xlabel=[],alt=[],lim=[],var_to=[],color=[],leg_loc=[],diurnal=[],show=[]): 
 
 
     j=0
@@ -149,7 +158,7 @@ def diurnal_exp_var_hour_sam(exp,variables,hour,fig_name,explabel=[],explabel2=[
         print("___________________")
 
 
-        figs,axis = main_plot_hour(exp,var,hour,fig_name,j,explabel,explabel2,xlabel,alt,lim,var_to,color,leg_loc,diurnal,show)
+        figs,axis = main_plot_hour(exp,var,hour,fig_name,j,explabel,explabel2,explabel3,xlabel,alt,lim,var_to,color,leg_loc,diurnal,show)
     
         j+=1
     
@@ -196,7 +205,9 @@ def diurnal_hours_dict_sam(exp,explabel=[],alt=[],lim=[],var_to=[],color=[],leg_
 
             date=ex.date
 
-            figs,axis = main_plot_diurnal_new(ex,data,date,z,defaul[1][k],defaul[0][k],defaul[3][k],name+'_'+var,defaul[4][k],defaul[5][k],defaul[6][k])
+            #lines per hour
+            ch=2
+            figs,axis = main_plot_diurnal_new(ex,data,ch,date,z,defaul[1][k],defaul[0][k],defaul[3][k],name+'_'+var,defaul[4][k],defaul[5][k],defaul[6][k])
 
 
             #print(defaul )
@@ -258,8 +269,10 @@ def diurnal_hours_dict_ccpp(exp,explabel=[],alt=[],lim=[],var_to=[],color=[],leg
             data=ex.nc_f[var][:,:,0]*defaul[2][k]
             date=ex.date
 
+            #lines per hour
+            ch=2
             #def main_plot_diurnal_new(ex,vartoplot,date,z,alt,lim,color,name,explabel2,leg_loc,diurnal):
-            figs,axis = main_plot_diurnal_new(ex,data,date,z,defaul[1][k],defaul[0][k],defaul[3][k],name+'_'+var,defaul[4][k],defaul[5][k],defaul[6][k])
+            figs,axis = main_plot_diurnal_new(ex,data,ch,date,z,defaul[1][k],defaul[0][k],defaul[3][k],name+'_'+var,defaul[4][k],defaul[5][k],defaul[6][k])
 
 
             #print(defaul )
@@ -302,7 +315,10 @@ def diurnal_hours(exp,name_ex,exp_var,days,alt=[],lim=[],var_to=[],color=[],expl
             print("%s"%(var.long_name))
             print("___________________")
 
-            figs,axis = main_plot_diurnal_new(var[:]*defaul[2][k],ex.data,ex.z,days[k],defaul[1][k],defaul[0][k],defaul[3][k],name_ex[0]+'_'+name,defaul[4][k],defaul[5][k],defaul[6][k])
+            #lines per hour
+            ch=2
+
+            figs,axis = main_plot_diurnal_new(var[:]*defaul[2][k],ch,ex.data,ex.z,days[k],defaul[1][k],defaul[0][k],defaul[3][k],name_ex[0]+'_'+name,defaul[4][k],defaul[5][k],defaul[6][k])
 
             #print(defaul )
             if defaul[7][k]:
@@ -475,7 +491,7 @@ def main_plot_deep(var,data,z,days,alt,lim,color,name,explabel,explabel2,diurnal
 
     return 
 
-def main_plot_hour(exp,var,hour,fig_name,vv,explabel1,explabel2,xlabel,alt,lim,var_to,color,leg_loc,diurnal,show):
+def main_plot_hour(exp,var,hour,fig_name,vv,explabel1,explabel2,explabel3,xlabel,alt,lim,var_to,color,leg_loc,diurnal,show):
 
 
     size_wg = 0.28
@@ -495,7 +511,8 @@ def main_plot_hour(exp,var,hour,fig_name,vv,explabel1,explabel2,xlabel,alt,lim,v
         date=ex.date
 
 
-        lim,alt,var_to,color,explabel1,explabel2,leg_loc,diurnal,show=df.default_values(ex,var,lim,alt,var_to,color,explabel1,explabel2,leg_loc,diurnal,show)
+        lim,alt,var_to,color,explabel1,explabel2,explabel3,leg_loc,diurnal,show=df.default_values_old(ex,var,lim,alt,var_to,color,explabel1,explabel2,explabel3,leg_loc,diurnal,show)
+
 
         #print(alt)
 
@@ -538,9 +555,11 @@ def main_plot_hour(exp,var,hour,fig_name,vv,explabel1,explabel2,xlabel,alt,lim,v
 
 
     explabel2=explabel2[vv]
+    explabel3=explabel3[vv]
+
 
     #def label_plots(ax,legend,explabel,xlabel): 
-    ax=label_plots(ax,leg_loc[vv],explabel2,xlabel)
+    ax=label_plots(ax,leg_loc[vv],explabel2,explabel3,xlabel)
 
 
     if len(alt)>len(exp):
@@ -561,7 +580,7 @@ def main_plot_hour(exp,var,hour,fig_name,vv,explabel1,explabel2,xlabel,alt,lim,v
 
     return fig,ax
 
-def main_plot_diurnal_new(ex,vartoplot,date,z,alt,lim,color,name,explabel2,leg_loc,diurnal):
+def main_plot_diurnal_new(ex,vartoplot,ch,date,z,alt,lim,color,name,explabel2,leg_loc,diurnal):
 
     #initial hour
     hi=ex.datei_diurnal.hour
@@ -572,7 +591,7 @@ def main_plot_diurnal_new(ex,vartoplot,date,z,alt,lim,color,name,explabel2,leg_l
     ni,nf= down.data_n(ex.datei_diurnal,ex.datef_diurnal,ex.date[:])
 
     ##interval hour
-    ch      = 1
+    ch      = ch
 
     idi=ex.datei_diurnal
     idf=ex.datef_diurnal
@@ -619,9 +638,10 @@ def main_plot_diurnal_new(ex,vartoplot,date,z,alt,lim,color,name,explabel2,leg_l
 
     fn,ax=fown.splot_own(fig,ax,vartoplot[ni:nf,:],z[:]/1000.0,date,color,label)
 
-    plt.axis([lim[0],lim[1],0,alt])
+    plt.axis([lim[0],lim[1],alt[0],alt[1]])
 
-    ax=label_plots(ax,leg_loc,[name,explabel2])
+    #def label_plots(ax,legend,explabel,xlabel): 
+    ax=label_plots(ax,leg_loc,name,explabel2)
 
     label="%s"%(name)
 

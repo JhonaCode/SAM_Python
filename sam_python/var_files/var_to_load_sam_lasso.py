@@ -12,13 +12,23 @@ from    netCDF4         import Dataset
 # To save the time coordinate in specific format 
 from    netCDF4         import num2date, date2num
 
-from cftime import num2date, num2pydate
+from    cftime          import num2date, num2pydate
+
+import datetime as dt
+
 
 class variables(object):
+
     def __init__(self):
+
+        self.datei       = 'datei'      
+        self.datef       = 'datef'
+        self.name        = 'name'
+        self.vars_to_plot= 'vars_to_plot'
+        self.date       = 'date' 
+        #####################################
         self.z          = 'z'
         self.time       = 'time'
-        self.data       = 'data' 
         self.p          = 'p'             
         self.SST        = 'SST'
         self.Ps         = 'Ps'
@@ -527,31 +537,37 @@ class variables(object):
 #To assint the label of the family of 
 #variables
 
-def ncload(file_l,calendar):
+def ncload(name,file_l,calendar,vars_1d=[],vars_2d=[],vars_diurnal=[],dates=[],dates_d=[]):
 
+    #load class 
     label=variables() 
 
+    #put the objets in class
+
+    label.datei=dt.datetime(dates[0][0],dates[0][1],dates[0][2],dates[0][3])
+    label.datef=dt.datetime(dates[1][0],dates[1][1],dates[1][2],dates[1][3])
+
+    if len(dates_d)>0:
+        label.datei_diurnal=dt.datetime(dates_d[0][0],dates_d[0][1],dates_d[0][2],dates_d[0][3])
+        label.datef_diurnal=dt.datetime(dates_d[1][0],dates_d[1][1],dates_d[1][2],dates_d[1][3])
+    else:
+        print('Diurnal dates experiment was no defined')
+
+    label.name=name
+    label.var1d=vars_1d
+    label.var2d=vars_2d
+    label.vars_diurnal=vars_diurnal
+
     # Your filename
-    nc_file    = '%s'%(file_l)  
+    nc_file    = '%s'%(file_l)
+
 
     # Dataset is the class behavior to open the file
     # and create an instance of the ncCDF4 class
-    nc_v = Dataset(nc_file, 'r')    
+    nc_v = Dataset(nc_file, 'r')
 
-    #To see the nc file
-    #nc_attrs, nc_dims, nc_vars = ncdump(nc_fid)
-    #Using a class for assing the variables name 
-    #to the labelname.
-    #classe=variables()
-    #for each in label:
-    ##label.key = nc_v.variables['%s'%(each)][:]
-    #each = nc_v.variables['%s'%(each)][:]
-    #label.= nc_v.variables['%s'%(each)][:]
-    #"label.{}".format(each) = nc_v.variables['%s'%(each)][:]
-    #label[1] = nc_v.variables['%s'%(each)][:]
-    #label."{}".format(each) = nc_v.variables['%s'%(each)][:]
-    #print ".{}".format(each)
-    #label."{}".format(each) = nc_v.variables['%s'%(each)][:]
+    label.nc_f       =nc_v 
+
     
     label.z          = nc_v.variables['z'         ]   
     label.time       = nc_v.variables['time'      ]
@@ -655,15 +671,15 @@ def ncload(file_l,calendar):
     label.UWSB       = nc_v.variables['UWSB'      ]
     label.VW         = nc_v.variables['VW'        ]
     label.VWSB       = nc_v.variables['VWSB'      ]
-    label.RADLWUP    = nc_v.variables['RADLWUP'   ]
-    label.RADLWDN    = nc_v.variables['RADLWDN'   ]
-    label.RADSWUP    = nc_v.variables['RADSWUP'   ]
-    label.RADSWDN    = nc_v.variables['RADSWDN'   ]
-    label.RADQRLW    = nc_v.variables['RADQRLW'   ]
-    label.RADQRSW    = nc_v.variables['RADQRSW'   ]
-    label.RADQR      = nc_v.variables['RADQR'     ]
-    label.RADQRS     = nc_v.variables['RADQRS'    ]
-    label.RADQRC     = nc_v.variables['RADQRC'    ]
+    #label.RADLWUP    = nc_v.variables['RADLWUP'   ]
+    #label.RADLWDN    = nc_v.variables['RADLWDN'   ]
+    #label.RADSWUP    = nc_v.variables['RADSWUP'   ]
+    #label.RADSWDN    = nc_v.variables['RADSWDN'   ]
+    #label.RADQRLW    = nc_v.variables['RADQRLW'   ]
+    #label.RADQRSW    = nc_v.variables['RADQRSW'   ]
+    #label.RADQR      = nc_v.variables['RADQR'     ]
+    #label.RADQRS     = nc_v.variables['RADQRS'    ]
+    #label.RADQRC     = nc_v.variables['RADQRC'    ]
     label.Q1C        = nc_v.variables['Q1C'       ]
     label.Q2         = nc_v.variables['Q2'        ]
     label.U2         = nc_v.variables['U2'        ]
@@ -778,8 +794,8 @@ def ncload(file_l,calendar):
     label.VRESID     = nc_v.variables['VRESID'    ]
     label.HLSTOR     = nc_v.variables['HLSTOR'    ]
     label.QTSTOR     = nc_v.variables['QTSTOR'    ]
-    label.RADQRCLW   = nc_v.variables['RADQRCLW'  ]
-    label.RADQRCSW   = nc_v.variables['RADQRCSW'  ]
+    #label.RADQRCLW   = nc_v.variables['RADQRCLW'  ]
+    #label.RADQRCSW   = nc_v.variables['RADQRCSW'  ]
     label.CLD        = nc_v.variables['CLD'       ]
     label.WCLD       = nc_v.variables['WCLD'      ]
     label.UCLD       = nc_v.variables['UCLD'      ]
@@ -1064,10 +1080,7 @@ def ncload(file_l,calendar):
     tu = calendar[0] 
     tc = calendar[1]
 
-    #print(label.time.units)
 
-    #label.data       = num2date(label.time,units=nc_v.variables['time'].units,calendar=nc_v.variables['time'].calendar)
-    #label.data       = num2date(label.time[:],units=tu,calendar=tc)
-    label.data       = num2pydate(label.time[:],units=tu,calendar=tc)
+    label.date       = num2pydate(label.time[:],units=tu,calendar=tc)
 
     return label 

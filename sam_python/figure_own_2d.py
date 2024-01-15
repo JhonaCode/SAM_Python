@@ -5,6 +5,10 @@ import  matplotlib.pyplot as plt
 #Color map
 from    matplotlib.colors import LinearSegmentedColormap
 
+from matplotlib.ticker import (MultipleLocator, LinearLocator,NullFormatter,
+                                   ScalarFormatter)
+
+
 #To work with date in plots 
 import  matplotlib.dates as mdates
 
@@ -31,6 +35,199 @@ import scipy.ndimage as ndimage
 cmap = LinearSegmentedColormap.from_list('mycmap', ['white','lightblue','skyblue','RoyalBlue','blue','darkblue'])
 cmap3 = LinearSegmentedColormap.from_list('mycmap', ['white','silver','blue','green','yellow'], N=256, gamma=0.5)
 cmap4 = LinearSegmentedColormap.from_list('mycmap', ['white','grey','lightblue','blue','green','yellow'], N=256, gamma=1.0)
+
+def d2_plot_wind(ex,x,y,var1,var2,contour,xlim,ylim,label,origin,colors,axis_on,leg_loc):
+
+    #Data to plot 
+    #mpl.rcParams.update(params_2d)
+
+    wf=axis_on[4]
+    hf=1.0
+    cmmais=axis_on[5]
+    #plot size of the figures
+    pn.plotsize(wf,hf,cmmais,'2d')
+
+    ################################3
+    fig = plt.figure()
+    ###New axis
+    ax  = plt.axes()
+
+    if colors=='cloud':
+        colors=cmap
+
+    if colors=='whbuyl':
+        colors=cmap3
+
+    #Variable to plot
+    #MF      =   np.sqrt(var1[:]**2+var2[:]**2)
+    MF      =  var1 
+
+    X,Y= np.meshgrid(x,y)
+
+    ###################33
+    levels= np.linspace(contour[0],contour[1],contour[2],endpoint=True)
+
+    CU=ax.contourf(Y,X,MF.T,levels=levels,origin='lower',cmap=colors,extend='both');
+
+    line_colors = ['darkgrey' for l in CU.levels]
+    ###################33
+    #Contour plot 
+    #CS=plt.contour(Y,X,MF.T,levels=levels[1:len(levels):2],colors=line_colors,linewidths=0.1 );
+
+
+    width=0.005
+    scale=100
+    step=100
+
+    qv = ax.quiver(x[::step], y[::step] ,var1[::step,::step], var2[::step,::step],color='black',scale=scale, width=width)#,headlength=0.05)
+
+    #ax.quiverkey(qv, X=1.00, Y=1.10, U=100,label=r'100[kgkg$^{-1}$ms$^{-1}$Pa]', labelpos='E',fontproperties={'size':5})
+    #ax.quiverkey(qv, X=1.05, Y=1.02, U=100,label=r'100', labelpos='E',fontproperties={'size':5}, labelsep=0.01)
+    
+
+    #plot_bar
+    if(axis_on[0]):
+
+        #CB = fig.colorbar(CU, shrink=1.0, extend='neither')
+        CB = fig.colorbar(CU, shrink=1.0, extend='both')
+
+        if(contour[0]>contour[1]):
+
+            kk= np.linspace(contour[0],0,11,endpoint=True,)
+            cbarlabels=kk
+
+        elif(contour[0]<0):
+
+            cbarlabels = np.linspace(contour[0],contour[1] ,contour[2],endpoint=True)
+            #cbarlabels=cbarlabels[1::]-contour[0]
+            CB.set_ticks(cbarlabels[0::4])
+            #print(cbarlabels)
+            #exit()
+
+        else:
+            cbarlabels = np.linspace(contour[0],contour[1],contour[2],endpoint=True)
+            print(cbarlabels)
+            #cbarlabels=cbarlabels[1::]-contour[0]
+            #CB.set_ticks(cbarlabels[0::4])
+            CB.set_ticks(cbarlabels[::4])
+            print(cbarlabels)
+
+
+        #CB.set_ticks(cbarlabels[1::4])
+        CB.ax.set_title(r'%s'%contour[3])
+
+    #formater=LinearLocator(10)
+    #ax.xaxis.set_major_formatter(formater)
+    #ax.yaxis.set_major_formatter(formater)
+
+    #ax.zaxis.set_major_formatter('{x:.02f}')
+    ax.xaxis.set_major_locator(MultipleLocator( xlim[2]))
+    ax.yaxis.set_major_locator(MultipleLocator(ylim[2]))
+
+    #ax.set_xlim(xlim[0], xlim[1])
+    #ax.set_ylim(ylim[0], ylim[1])
+
+    #ax.set_xticks([-180, -120, -60, 0, 60, 120, 180], crs=ccrs.PlateCarree())
+    #ax.set_yticks([-78.5, -60, -25.5, 25.5, 60, 80], crs=ccrs.PlateCarree())
+
+    if(leg_loc[0]):
+
+        ax.text(leg_loc[1], leg_loc[2], r' %s'%(label), fontsize=7, color='black')
+
+    return fig,ax    
+def d2_plot_horizontal(ex,x,y,var,contour,xlim,ylim,label,origin,colors,axis_on,leg_loc):
+
+    #Data to plot 
+    #used user parameter to plot(plotparameter.py
+    #mpl.rcParams.update(params_2d)
+
+    wf=axis_on[4]
+    hf=1.0
+    cmmais=axis_on[5]
+
+    #plot size of the figures
+    #cmmais are the cm to put the cbbar  without modified the size of the fig 
+    pn.plotsize(wf,hf,cmmais,'2d')
+
+    ################################3
+    fig = plt.figure()
+    ###New axis
+    ax  = plt.axes()
+
+    sx= x.shape[0]
+    sy= y.shape[0]
+    
+    MF=np.zeros((sy,sx))
+    
+    # with the data and no time
+    #Variable to plot
+    MF      =   var[:,:]
+
+    if colors=='cloud':
+        colors=cmap
+
+    if colors=='whbuyl':
+        colors=cmap3
+
+    X,Y= np.meshgrid(x,y)
+
+    levels= np.linspace(contour[0],contour[1],contour[2],endpoint=True)
+
+    CU=ax.contourf(Y,X,MF.T,levels=levels,origin='lower',cmap=colors,extend='both');
+
+    line_colors = ['darkgrey' for l in CU.levels]
+
+    #Contour plot 
+    CS=plt.contour(Y,X,MF.T,levels=levels[1:len(levels):2],colors=line_colors,linewidths=0.1 );
+
+
+    #plot_bar
+    if(axis_on[0]):
+
+        CB = fig.colorbar(CU, shrink=1.0, extend='neither')
+
+        if(contour[0]>contour[1]):
+
+            kk= np.linspace(contour[0],0,11,endpoint=True,)
+            cbarlabels=kk
+
+        elif(contour[0]<0):
+
+            cbarlabels = np.linspace(contour[0],contour[1] ,contour[2],endpoint=True)
+            #cbarlabels=cbarlabels[1::]-contour[0]
+            CB.set_ticks(cbarlabels[0::4])
+            #print(cbarlabels)
+            #exit()
+
+        else:
+            cbarlabels = np.linspace(contour[0],contour[1]+contour[0],contour[2],endpoint=True)
+            cbarlabels=cbarlabels[1::]-contour[0]
+            CB.set_ticks(cbarlabels[1::4])
+            print(cbarlabels)
+
+
+        #CB.set_ticks(cbarlabels[1::4])
+        CB.ax.set_title(r'%s'%contour[3])
+
+    #formater=LinearLocator(10)
+    #ax.xaxis.set_major_formatter(formater)
+    #ax.yaxis.set_major_formatter(formater)
+
+    #ax.zaxis.set_major_formatter('{x:.02f}')
+    ax.xaxis.set_major_locator(MultipleLocator( xlim[2]))
+    ax.yaxis.set_major_locator(MultipleLocator(ylim[2]))
+
+    ax.set_xlim(xlim[0], xlim[1])
+    ax.set_ylim(ylim[0], ylim[1])
+
+    #ax.set_xticks([-180, -120, -60, 0, 60, 120, 180], crs=ccrs.PlateCarree())
+    #ax.set_yticks([-78.5, -60, -25.5, 25.5, 60, 80], crs=ccrs.PlateCarree())
+
+    if(leg_loc[0]):
+
+        ax.text(leg_loc[1], leg_loc[2], r' %s'%(label), fontsize=7, color='black')
+
+    return fig,ax    
 
 def d2_plot_im_diff(ex,time,z,var,contour,label,origin,colors,axis_on):
 
@@ -125,7 +322,7 @@ def d2_plot_im_diff(ex,time,z,var,contour,label,origin,colors,axis_on):
             cbarlabels = np.linspace(contour[0],contour[1]+contour[0],contour[2],endpoint=True)
             cbarlabels=cbarlabels[1::]-contour[0]
             CB.set_ticks(cbarlabels[1::4])
-            print(cbarlabels)
+            #print(cbarlabels)
 
 
         #CB.set_ticks(cbarlabels[1::4])
@@ -155,70 +352,6 @@ def d2_plot_im_diff(ex,time,z,var,contour,label,origin,colors,axis_on):
 
     return fig,ax    
 
-def d2_plot_ctn(time,z,var,contour,ni,nf,nv1,nv2,label,origin,colors):
-
-    #Data to plot 
-    #used user parameter to plot(plotparameter.py
-    #mpl.rcParams.update(params_2d)
-
-    wf=0.4
-    hf=0.7
-    cmmais=0.0
-
-    #plot size of the figures
-    #cmmais are the cm to put the cbbar  without modified the size of the fig 
-    pn.plotsize(wf,hf,cmmais,'2d')
-
-    ################################3
-    fig = plt.figure()
-    ###New axis
-    ax  = plt.axes()
-
-    sx= time.shape[0]
-    sy= z.shape[0]
-    
-    x=np.zeros(sx)
-    y=np.zeros(sy)
-    MF=np.zeros((sx,sy))
-    
-    # with the data and no time
-    x       =   time[:]
-    y       =   z[:]
-    #Variable to plot
-    MF      =   var[:,:]
-
-
-    if colors=='cloud':
-        colors=cmap
-
-    if colors=='whbuyl':
-        colors=cmap3
-
-    X,Y= np.meshgrid(x,y)
-
-    levels= np.linspace(contour[0],contour[1],contour[2])
-
-    CU=ax.contourf(X,Y,MF.T,levels=levels, interpolation='bilinear',origin='lower',cmap=colors,aspect='auto');
-
-    # Set all level lines to black
-    line_colors = ['black' for l in CU.levels]
-
-    #Contour plot 
-    CS=plt.contour(X,Y,MF.T,levels=levels[::10],colors=line_colors,linewidths=0.1);
-
-    ax.xaxis_date()
-    date_form = mdates.DateFormatter("%H" )
-    ax.xaxis.set_major_formatter(date_form)
-    ax.set_xlim(time[ni],time[nf])
-    ax.set_ylim([z[nv1],z[nv2]])
-    ax.yaxis.set_major_locator(plt.MultipleLocator(1.0))
-
-
-    ax.text(time[ni+1], z[nv2]-0.5, r' %s'%(label), fontsize=7, color='black')
-
-
-    return fig,ax    
-
 def base_top_cloud(fig,ax,ex):
 
     size= ex.date.shape[0]
@@ -226,7 +359,11 @@ def base_top_cloud(fig,ax,ex):
 
     #max heigh points
     #ex: resolution (50m)*30
-    maxl=30
+    #for gomazon paper 
+    #maxl=30
+
+    #for arm paper 
+    maxl=80
 
     ctop  =[]
     ctop2 =[]
@@ -240,7 +377,9 @@ def base_top_cloud(fig,ax,ex):
         indexc  =  np.argmax(   ex.CLD[i][0:maxl])
 
         #for j in range(1,10):
-        for j in range(1,5):
+        #for goamazon 
+        #for j in range(1,5):
+        for j in range(1,10):
 
             index2=index1+j
 
@@ -253,7 +392,9 @@ def base_top_cloud(fig,ax,ex):
             else:
                     indexmin=index1
 
-        for i1 in range(0,70):
+        #for gomazon paper
+        #for i1 in range(0,70):
+        for i1 in range(0,200):
 
              index3=indexmin+i1
 
@@ -348,126 +489,6 @@ def base_top_cloud(fig,ax,ex):
         ax.text(idtex3,ctopf[ytex2]+0.1 , r' %s'%(text3), fontsize=7, color='black')
 
     return fig,ax
-
-
-def d2_plot_im_ctn(ex,days,time,data,var,z,contour,idi,idf,nv1,nv2,label1,label2,origin,colors,axis_on):
-
-    #used user parameter to plot(plotparameter.py
-    #mpl.rcParams.update(params_2d)
-
-    wf=axis_on[3]
-    hf=1.0
-
-    #cmmais=0.0
-    #plot size of the figures
-    #cmmais are the cm to put the cbbar  without modified the size of the fig
-    plotsize(wf,hf,axis_on[4],'2d')
-
-    ################################3
-    fig = plt.figure()
-    ###New axis
-    ax  = plt.axes()
-
-    #Limits of time date
-    ni,nf= down.data_n(idi,idf,data[:])
-
-    # To found the maximum date, even
-    # that required date not exists
-    if nf==0:
-
-        nf=data.shape[0]-1
-
-    #Limits of high date
-    li,lf= down.level_n(nv1,nv2,z[:])
-
-
-    sx= data.shape[0]
-    sy= z.shape[0]
-
-    x=np.zeros(sx)
-    y=np.zeros(sy)
-
-    MF=np.zeros((sx,sy))
-
-    #THe only way to time to be reconize by the imshow and contour is
-    # with the data and no time
-    x       =   data[:]
-    y       =      z[:]
-
-    #Variable to plot
-    MF      =   var[:,:]
-
-
-    if colors=='cloud':
-        colors=cmap
-
-    if colors=='whbuyl':
-        colors=cmap3
-
-    X,Y= np.meshgrid(x,y)
-
-    def calculate_aspect(shape, extent):
-
-        dx = (extent[1] - extent[0]) / float(shape[1])
-        dy = (extent[3] - extent[2]) / float(shape[0])
-
-        return dx / dy
-
-
-    # Levels to plot, in number.
-
-    levels= np.linspace(contour[0],contour[1],contour[2],endpoint=True)
-
-    CU=ax.contourf(X,Y,MF.T,levels=levels, interpolation='bilinear',origin='lower',cmap=colors,aspect='auto');
-
-    # Set all level lines to black
-    #line_colors = ['white' for l in CU.levels]
-    #line_colors = ['lightgrey' for l in CU.levels]
-    #line_colors[0]='white'
-    line_colors = ['darkgrey' for l in CU.levels]
-
-    CS=plt.contour(X,Y,MF.T,levels=levels[1:len(levels):2],colors=line_colors,linewidths=0.1);
-
-    #plot_cloud
-    if(axis_on[0]):
-
-        fig,ax=base_top_cloud(fig,ax,ex)
-
-    #plot_bar
-    if(axis_on[1]):
-        plt.ylabel(r'z [km]')
-
-    ax.xaxis_date()
-
-    date_form = mdates.DateFormatter("%H" )
-    ax.xaxis.set_major_formatter(date_form)
-
-    #ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
-    #loc=mpl.ticker.MultipleLocator(0.5)
-    #ax.yaxis.set_major_locator(loc)
-
-    locatormax = mdates.HourLocator(interval=2)
-    locatormin = mdates.HourLocator(interval=1)
-    ax.xaxis.set_minor_locator(locatormin)
-    ax.xaxis.set_major_locator(locatormax)
-
-    ax.set_ylim([nv1,nv2])
-    ax.set_xlim(data[ni],data[nf])
-
-    #plt.axis( [data[ni],data[nf],nv1,nv2])
-
-    ax.text(data[ni+1] , nv2-0.5, r' %s'%(label2), fontsize=7, color='black')
-    #ax.text(data[ni+1] , nv2-0.5, r' %s'%(label2[0:3]), fontsize=9, color='black')
-    #ax.text(data[ni+10], nv2-0.5, r' %s'%(label2[3:17]), fontsize=7, color='black')
-
-    #plt.clim(contour[0], contour[1])
-    #plt.tight_layout()
-    #l, b, w, h = ax.get_position().bounds
-    #ll, bb, ww, hh = CB.ax.get_position().bounds
-    #CB.ax.set_position([ll, b + 0.01*h, ww, h*0.8])
-
-    return fig,ax
-
 
 
 def get_figsize(columnwidth, wf=0.5, hf=(5.**0.5-1.0)/2.0, ):
