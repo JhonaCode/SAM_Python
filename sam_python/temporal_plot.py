@@ -44,6 +44,12 @@ from scipy.stats import pearsonr,spearmanr,kendalltau
 import matplotlib.patches as mpat
 
 
+import  sam_python.default_values as df
+
+#import  campain_data  as cd
+import  sam_python.data_own       as down
+
+
 #var_all.append(var[ni:nf]) 
 #
 #ax=mean(ax,var_all,data,size)
@@ -51,6 +57,167 @@ import matplotlib.patches as mpat
 #Where the hour and seconds are really important
 #day0=0
 #data = down.data_to_reference(ex.data,day0,days[0][4])
+
+def temporal_plot_var_exp(exp,var=[],var_to=[],explabel1=[],days=[],explabel2=[],alt=[],plot_def=[],lim=[],color=[],show=[]):
+
+    exp_var=var
+
+    k=0
+    for vtex in exp_var:
+
+        if k==0:
+
+            if not var:
+                exp_var=exp[k].var1d
+
+        lim,alt,var_to,color,explabel1,explabel2,plot_def,show = df.default_values_1d(exp,exp_var,lim,alt,var_to,color,explabel1,explabel2,plot_def,show,k)
+
+
+        size_wg = plot_def[k][0][3][0] 
+        size_hf = 0.5
+        plotsize(size_wg,size_hf, plot_def[k][0][3][1],'temporal')
+
+        fig  = plt.figure()
+        ax   = plt.axes()
+
+        j=0
+        for ex in exp:
+
+            print('\n')
+            print('_______________________________________')
+            print('       ________%s_______'%(ex.name))
+            print('_______________________________________')
+            print('\n')
+
+            if days:
+
+                idi     = dt.datetime(days[k][0][0][0], days[k][0][0][1] ,days[k][0][0][2], days[k][0][0][3],days[k][0][0][4],0) 
+                idf     = dt.datetime(days[k][0][1][0], days[k][0][1][1] ,days[k][0][1][2], days[k][0][1][3],days[k][0][1][4],0)
+
+                ni,nf= down.data_n(idi,idf,ex.date[:])
+
+                if ni>len(ex.date):
+                    ni=ni-1
+
+            else:
+                #days=ex.datei+ex.datef
+                ni,nf= down.data_n(ex.datei,ex.datef,ex.date[:])
+
+
+            var=getattr(ex, vtex)
+            var=var[ni:nf]*var_to[j][k]
+
+            print(var_to[j][k])
+
+            date=ex.date[ni:nf]
+
+            ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
+
+            print('For '+ex.name+' ploting '+vtex)
+
+
+            plt.plot(date,var,label='%s'%(explabel1[j][k]),color=color[k][j],linewidth=1.0,alpha=1.0)
+
+
+            exname=ex.name
+
+            j+=1
+
+        fig,ax=plot_temporal_axis(fig,ax,ex,alt[k][0],lim[k][0],plot_def[k][0])
+
+        plt.savefig('%s/temporal_%s.pdf'%(file_temporal,vtex),bbox_inches='tight', format='pdf', dpi=1000)
+
+        if show[k]:
+            plt.show()
+
+        k+=1
+
+
+    return fig
+
+def temporal_plot_exp_var(exp,var=[],var_to=[],explabel1=[],days=[],explabel2=[],alt=[],plot_def=[],lim=[],color=[],show=[]):
+
+    exp_var=var
+
+    k=0
+
+    for ex in exp:
+
+        if k==0:
+
+            if not var:
+                exp_var=ex.var1d
+
+        print('\n')
+        print('_______________________________________')
+        print('       ________%s_______'%(ex.name))
+        print('_______________________________________')
+        print('\n')
+
+
+        lim,alt,var_to,color,explabel1,explabel2,plot_def,show = df.default_values_1d(exp,exp_var,lim,alt,var_to,color,explabel1,explabel2,plot_def,show,k)
+
+
+        j=0
+        for vtex in exp_var:
+
+            if days:
+
+                idi     = dt.datetime(days[k][j][0][0], days[k][j][0][1] ,days[k][j][0][2], days[k][j][0][3],days[k][j][0][4],0) 
+                idf     = dt.datetime(days[k][j][1][0], days[k][j][1][1] ,days[k][j][1][2], days[k][j][1][3],days[k][j][1][4],0)
+
+                ni,nf= down.data_n(idi,idf,ex.date[:])
+
+                if ni>len(ex.date):
+                    ni=ni-1
+
+            else:
+                #days=ex.datei+ex.datef
+                ni,nf= down.data_n(ex.datei,ex.datef,ex.date[:])
+
+
+            var=getattr(ex, vtex)
+            var=var[ni:nf]*var_to[k][j]
+            date=ex.date[ni:nf]
+
+            #ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
+
+            print('For '+ex.name+' ploting '+vtex)
+
+            #ni,nf= down.data_n(ex.datei,ex.datef,ex.date[:])
+            #date= ex.date[ni:nf]
+            #to make the plot with the variables defined
+            #fig,ax=temporal_plot(fig,ax,date,var,k=j,exp_label=exp_label[k][j],color=color[j])
+            #plt.plot(data,var,label='%s'%(exp_label1),color=color,linewidth=1.0,alpha=1.0,dashes=line,marker='')
+
+            size_wg = plot_def[k][j][3][0] 
+            size_hf = 0.5
+            plotsize(size_wg,size_hf, plot_def[k][j][3][1],'diurnal')
+
+            fig  = plt.figure()
+            ax   = plt.axes()
+
+            plt.plot(date,var,label='%s'%(explabel1[k][j]),color=color[k][j],linewidth=1.0,alpha=1.0)
+
+            fig,ax=plot_temporal_axis(fig,ax,ex,alt[k][j],lim[k][j],plot_def[k][j])
+
+            #exname=ex.name
+
+            j+=1
+
+
+        #to defined the plot characteristics 
+        #fig,ax=plot_temporal_axis(fig,ax,ex,lim=lim[k],plot_def=plot_def[k])
+
+        plt.savefig('%s_%s_%s.pdf'%(file_temporal,exname,vn),bbox_inches='tight', format='pdf', dpi=1000)
+
+        if show[k][j]:
+            plt.show()
+
+        k+=1
+
+
+    return fig
 
 def temporal_plot_dict(exp,var_to=0,exp_label=0,plot_def=0,lim=0,color=0,show=0):
 
@@ -190,40 +357,35 @@ def temporal_plot(fig,ax,data,var,k=0,exp_label=0,color=0):
     return fig,ax
 
 
-def plot_temporal_axis(fig,ax,ex,lim=0,interval=0,plot_def=0):
+def plot_temporal_axis(fig,ax,ex,alt,lim,plot_def):
 
 
-    if interval==0:
-
-        interval=int(ex.date.shape[0]/4)
+    #plot_def
+    #[ [X,Y], ['a)',dt.datetime(2014,3,5,0),120],[False,'upper left'],[0.35,0]]
+    
+    lmin=lim[0]
+    lmax=lim[1]
+    #interval=int(ex.date.shape[0]/4)
+    interval=lim[2]
 
     locatormax = mdates.HourLocator(interval=interval)
     locatormin = mdates.HourLocator(interval=int(interval/2))
 
+    majorFormatter = mpl.dates.DateFormatter('%H')
+    ax.xaxis.set_major_formatter(majorFormatter)
+
     ax.xaxis.set_minor_locator(locatormin)
     ax.xaxis.set_major_locator(locatormax )
 
-    if lim==0:
-        lmax=np.max(var)
-        lmin=np.min(var)
-    else:
-        lmin=lim[0]
-        lmax=lim[1]
+    d1=dt.datetime(plot_def[1][1][0],plot_def[1][1][1],plot_def[1][1][2],plot_def[1][1][3])
 
-    plt.axis([ex.datei,ex.datef,lmin,lmax])
+    plt.xlabel(r'%s'%(plot_def[0][0])) 
+    plt.ylabel(r'%s'%(plot_def[0][1])) 
 
-    if len(plot_def[0])>0:
+    ax.text(d1,plot_def[1][2], r'%s'%(plot_def[1][0]), fontsize=8, color='black')
 
-        plt.xlabel(r'%s'%(plot_def[0][0])) 
-        plt.ylabel(r'%s'%(plot_def[0][1])) 
+    ax.legend(frameon=plot_def[2][0],loc=plot_def[2][1])
 
-    if len(plot_def)>1:
-
-        ax.text(plot_def[1][1],plot_def[1][2], r'%s'%(plot_def[1][0]), fontsize=9, color='black')
-
-    if len(plot_def)>=2:
-    
-        ax.legend(frameon=plot_def[2][0],loc=plot_def[2][1])
 
     return fig,ax
 

@@ -68,14 +68,12 @@ def plot2d_contour(exp,var=[],contour=[],alt=[],days=[],explabel1=[],explabel2=[
         print('_______________________________________')
         print('\n')
 
+
         lim,alt,var_to,color,explabel1,explabel2,axis_on,show = df.default_values_2d(exp,exp_var,contour,alt,var_to,color,explabel1,explabel2,axis_on,show,k)
 
 
         j=0
         for vtex in exp_var:
-
-            #print(explabel1,explabel1[k][j],k)
-            #exit()
 
             if days:
 
@@ -98,9 +96,9 @@ def plot2d_contour(exp,var=[],contour=[],alt=[],days=[],explabel1=[],explabel2=[
             li,lf= down.level_n(alt[k][j][0],alt[k][j][1],ex.z[:]/1000.0)
 
             #To scale de var
-            var=var[ni:nf,li:lf]*var_to[k][j]
+            var=var[ni:nf,li:lf+1]*var_to[k][j]
             date=ex.date[ni:nf]
-            z=ex.z[li:lf]/1000.0
+            z=ex.z[li:lf+1]/1000.0
 
 
             fn,ax   = fown.d2_plot_im_diff(ex,date,z,var,contour[k][j],explabel1[k][j],'lower',color[k][j],axis_on[k][j])
@@ -112,7 +110,8 @@ def plot2d_contour(exp,var=[],contour=[],alt=[],days=[],explabel1=[],explabel2=[
             #ax.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
 
             if(axis_on[k][j][1]):
-                plt.xlabel(r'Hours LT (UTC-4)') 
+                #plt.xlabel(r'Hours LT (UTC-4)') 
+                plt.xlabel(r'Horas HL (UTC-6)') 
             if(axis_on[k][j][2]):
                 plt.ylabel(r'z [km]')
 
@@ -123,15 +122,16 @@ def plot2d_contour(exp,var=[],contour=[],alt=[],days=[],explabel1=[],explabel2=[
 
                 plt.show()
 
+            plt.close('all')
+
             j+=1
         k+=1
 
 
-        plt.close('all')
 
     return 
 
-def plot2d_im_diff(ex1,ex2,variables,days=[],alt=[],color=[],explabel=[],var_to=[],contour=[],axis_on=[],show=[]):
+def plot2d_im_diff(ex1,ex2,variables,days=[],alt=[],color=[],explabel1=[],explabel2=[],var_to=[],contour=[],axis_on=[],keyf=[],show=[]):
 
     print("___________________")
     print("Difference %s-%s   "%(ex2.name,ex1.name))
@@ -142,7 +142,10 @@ def plot2d_im_diff(ex1,ex2,variables,days=[],alt=[],color=[],explabel=[],var_to=
     ex=ex1
 
     j=0
+
+
     for var in variables:
+
 
         print("____Variable_______")
         print("       %s          "%(var))
@@ -155,9 +158,12 @@ def plot2d_im_diff(ex1,ex2,variables,days=[],alt=[],color=[],explabel=[],var_to=
         if days:
 
             idi     = dt.datetime(days[j][0][0], days[j][0][1] ,days[j][0][2], days[j][0][3],5,0) 
+
             idf     = dt.datetime(days[j][1][0], days[j][1][1] ,days[j][1][2], days[j][1][3],5,0)
 
+            ###########
             #print(idi)
+            ###########
 
             h1i=days[j][0][3]
             h2i=days[j][1][3]
@@ -194,39 +200,46 @@ def plot2d_im_diff(ex1,ex2,variables,days=[],alt=[],color=[],explabel=[],var_to=
         var2     = ex2.nc_f[var][n2i:n2f,:]
 
         diff     = var2-var1
+
         #mean     = (var2+var1)/2.0
         #dp       = np.sqrt(0.5*((var1-mean)**2+(var2-mean)**2))
         #diff     = (var2-var1)/dp
 
-        default= default_values(ex,diff,contour,alt,var_to,color,explabel,axis_on,show)
+        #default= default_values(ex,diff,contour,alt,var_to,color,explabel,axis_on,show)
 
-        li,lf= down.level_n(0.0,default[1][j],ex.z[:]/1000.0)
+        lim,alt,var_to,color,explabel1,explabel2,axis_on,show = df.default_values_diff(ex,variables,contour,alt,var_to,color,explabel1,explabel2,axis_on,show)
 
-        #To scale de var
-        diff=diff[:,li:lf]*default[2][j]
-        date=ex.date[n2i:n2f]
-        z=ex.z[li:lf]/1000.0
+        li,lf= down.level_n(alt[j][0],alt[j][1],ex.z[:]/1000.0)
 
-        #fn,ax   = fown.d2_plot_ctn_diff(date,z,diff,contour[j],explabel[j],'lower',defaul[3][j])
+        #To scale the var
+        #diff=diff[:,li:lf]*default[2][j]
+        #date=ex.date[n2i:n2f]
+        #z=ex.z[li:lf]/1000.0
 
-        #defaul=[lim,alt,var_to,color,explabel,axin_on,show]
+        #To scale the var
+        var2pl=diff[:,li:lf+1]*var_to[j]
+        date=ex.date[n1i:n1f]
+        z=ex.z[li:lf+1]/1000.0
 
+        fn,ax   = fown.d2_plot_im_diff(ex,date,z,var2pl,contour[j],explabel1[j],'lower',color[j],axis_on[j])
 
-        fn,ax=fown.d2_plot_im_diff(ex,date,z,diff,default[0][j],default[4][j],'lower',default[3][j],default[5][j])
-        
         #ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
 
         ax.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
 
-        if(default[5][j][1]):
-            plt.xlabel(r'Hours LT (UTC-4)') 
-        if(default[5][j][2]):
+
+        if(axis_on[j][1]):
+            #plt.xlabel(r'Hours LT (UTC-6)') 
+            plt.xlabel(r'Horas HL (UTC-6)') 
+
+        if(axis_on[j][2]):
                 plt.ylabel(r'z [km]')
 
-        plt.savefig('%s/diff_%s_2d_%s.pdf'%(file_fig,var,ex1.name+'_'+ex2.name), format='pdf',bbox_inches='tight', dpi=1000)
+        
+        plt.savefig('%s/diff_%s_2d_%s_%s.pdf'%(file_fig,var,ex1.name+'_'+ex2.name,keyf[0]), format='pdf',bbox_inches='tight', dpi=1000)
 
 
-        if default[6][j]:
+        if show[j]:
             plt.show()
 
         plt.close()

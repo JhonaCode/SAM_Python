@@ -1,4 +1,7 @@
 import  numpy               as np
+
+# Python standard library datetime  module
+import  datetime as dt  
 ##################################
 
 ##################################
@@ -58,6 +61,132 @@ def default_values_2d(exp,varst,lim,alt,var_to,color,explabel1,explabel2,axis_on
     show.append(show1)
 
     return lim,alt,var_to,color,explabel1,explabel2,axis_on,show
+
+#######################
+
+def default_values_diff(exp,varst,lim,alt,var_to,color,explabel1,explabel2,axis_on,show): 
+
+    el=1#len(exp) 
+    vl=len(varst)
+
+    ex=exp
+
+    name=ex.name
+
+
+    a1          =  [(True,True,True ,True,0.35,1.34)]
+
+    lim1=[]
+    alt1=[]
+    var_to1=[]
+    label1=[]
+    label2=[]
+    color1=[]
+    ax1=[]
+    show1=[]
+
+
+    for i in range(0, vl):
+
+        var=varst[i]
+        #Getting the Defaul values
+        maxv=np.max(ex.nc_f[var])
+        minv=np.min(ex.nc_f[var])
+
+        minh=np.min(ex.z[:]/1000.0)
+        maxh=np.max(ex.z[:]/1000.0)
+
+        lim1.append([minv,maxv])
+        alt1.append([minh,maxh])         
+
+        var_to1.append(1)
+
+        color1.append('RdBu_r')
+
+        label1.append(var+'_'+ex.name)
+        label2.append('')
+
+        ####bar ,x,y axis, top_lfc_pbl,size,cm a mais do grafico
+        ax1.append(a1)
+
+        show1.append('True')
+
+    lim.append(lim1)
+    var_to.append(var_to1)
+    color1.append(color1)
+    explabel1.append(label1)
+    explabel2.append(label2)
+    axis_on.append(ax1)
+    show.append(show1)
+
+    return lim,alt,var_to,color,explabel1,explabel2,axis_on,show
+
+def default_values_1d(exp,varst,lim,alt,var_to,color,explabel1,explabel2,plot_def,show,k): 
+
+    el=len(exp) 
+    vl=len(varst)
+
+    ex=exp[k]
+
+    name=ex.name
+
+    X=''
+    Y=''
+
+    a1          =  ( [X,Y],[X,0,0],[False,'upper left'],[0.35,0])
+
+    lim1=[]
+    alt1=[]
+    var_to1=[]
+    label1=[]
+    label2=[]
+    color1=[]
+    ax1=[]
+    show1=[]
+
+
+    interval_x=4
+
+
+    for i in range(0, vl):
+
+        var=varst[i]
+
+        #Getting the Defaul values
+        maxv=np.max(ex.nc_f[var])
+        minv=np.min(ex.nc_f[var])
+        interval_y=int(maxv/4)
+
+        maxt=np.max(0)
+        mint=np.min(len(ex.nc_f[var]))
+
+        lim1.append([mint,maxt,interval_x])
+        alt1.append([minv,maxv,interval_y])         
+
+
+        var_to1.append([1])
+
+        color1.append('blue')
+
+        label1.append(var+'_'+ex.name)
+        label2.append([''])
+
+        ####bar ,x,y axis, top_lfc_pbl,size,cm a mais do grafico
+        ax1.append([a1])
+
+        show1.append('True')
+
+    lim.append(lim1)
+    alt.append(alt1)
+    var_to.append(var_to1)
+    color1.append(color1)
+    explabel1.append(label1)
+    explabel2.append(label2)
+    plot_def.append(ax1)
+    show.append(show1)
+
+    return lim,alt,var_to,color,explabel1,explabel2,plot_def,show
+    #return lim1,alt1,var_to1,color,label1,label2,ax1,show1
 
 ##################################
 def default_values(exp,varst,lim,alt,var_to,color,explabel1,explabel2,leg_loc,diurnal,show,k): 

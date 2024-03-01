@@ -203,7 +203,7 @@ def d2_plot_horizontal(ex,x,y,var,contour,xlim,ylim,label,origin,colors,axis_on,
             cbarlabels = np.linspace(contour[0],contour[1]+contour[0],contour[2],endpoint=True)
             cbarlabels=cbarlabels[1::]-contour[0]
             CB.set_ticks(cbarlabels[1::4])
-            print(cbarlabels)
+            #print(cbarlabels)
 
 
         #CB.set_ticks(cbarlabels[1::4])
@@ -216,6 +216,7 @@ def d2_plot_horizontal(ex,x,y,var,contour,xlim,ylim,label,origin,colors,axis_on,
     #ax.zaxis.set_major_formatter('{x:.02f}')
     ax.xaxis.set_major_locator(MultipleLocator( xlim[2]))
     ax.yaxis.set_major_locator(MultipleLocator(ylim[2]))
+
 
     ax.set_xlim(xlim[0], xlim[1])
     ax.set_ylim(ylim[0], ylim[1])
@@ -347,6 +348,7 @@ def d2_plot_im_diff(ex,time,z,var,contour,label,origin,colors,axis_on):
     ax.set_ylim([z[0],z[len(z)-1]])
     ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
 
+
     ax.text(time[0+1], z[len(z)-1]-0.5, r' %s'%(label), fontsize=7, color='black')
 
 
@@ -370,6 +372,7 @@ def base_top_cloud(fig,ax,ex):
     cbase =[]
     cbase2=[]
     pblh  =[]
+    cmflx =[]
 
     for i in range(0,tam):
 
@@ -379,7 +382,7 @@ def base_top_cloud(fig,ax,ex):
         #for j in range(1,10):
         #for goamazon 
         #for j in range(1,5):
-        for j in range(1,10):
+        for j in range(1,20):
 
             index2=index1+j
 
@@ -394,11 +397,13 @@ def base_top_cloud(fig,ax,ex):
 
         #for gomazon paper
         #for i1 in range(0,70):
-        for i1 in range(0,200):
+        for i1 in range(0,100):
 
              index3=indexmin+i1
 
-             if ex.QC[i][index3]<0.001 :
+             #paper goamazon
+             #if ex.QC[i][index3]<0.001 :
+             if ex.QC[i][index3]<0.005 :
 
                  indexmax=index3
 
@@ -434,8 +439,10 @@ def base_top_cloud(fig,ax,ex):
         ##        break
 
 
+
         pblh.append(ex.z[index1]/1000.0)
         cbase.append(ex.z[indexmin]/1000.0)
+        cmflx.append(ex.MCUP[i,indexmin])
         cbase2.append(ex.z[indexc]/1000.0)
         ctop.append(ex.z[indexmax]/1000.0)
 
@@ -449,13 +456,62 @@ def base_top_cloud(fig,ax,ex):
     ni2,nf2= down.data_n(idi2,idf2,ex.date[:])
 
 
+    # To find 13 and 14 hours
+    i13     = datetime(ex.datef.year,ex.datef.month,ex.datef.day,13)#dt.datetime(2014, days[2] ,days[0], 10)
+    i14     = datetime(ex.datef.year,ex.datef.month,ex.datef.day,14)#dt.datetime(2014, days[2] ,days[0], 10)
+
+    n13,n14= down.data_n(i13,i14,ex.date[:])
+
+    #TO find the cloud fraction max
+    cbi    =np.argmax(cbase)
+    cbmax   =cbase[cbi]
+    cbmax14 =cbase[n14]
+
+    #TO find the mass flux max
+    mfi   =np.argmax(cmflx)
+    mfmax =cmflx[mfi]
+    cbmf  =cbase[mfi]
+
+    #Tree ways to calculate the max 
+    #topmax=np.max(ctop)
+
+    top_cb  =ctop[cbi]
+    top_14  =ctop[n14]
+    top_mf  =ctop[mfi]
+
+    print(ex.date[mfi],'mfmax')
+    print(ex.date[cbi],'cbmax')
+    #print(ex.date[n14],'14')
+
+
+    #############
+    print('######')
+    print('CB base='   ,cbmax)
+    print('CB base 14=',cbmax14)
+    print('MF base='   ,cbmf)
+
+    #############
+    print('######')
+    print('CB top='   ,top_cb)
+    print('CB top 14=',top_14)
+    print('MF top='   ,top_mf)
+
+    #############
+    print('######')
+    print('CB    Deep=',top_cb-cbmax)
+    print('CB 14 Deep=',top_14-cbmax14)
+    print('MF Deep=',top_mf-cbmf)
+    
+
     n = 3#nf2-ni2  # the larger n is, the smoother curve will be
     b = [1.0 / n] * n
     a = 1
 
-    text1='LFC'
+    #text1='LFC'
+    text1='NCL'
     text2='$\mathrm{Z_i}$'
-    text3='$\mathrm{h_{top}}$'
+    #text3='$\mathrm{h_{top}}$'
+    text3='$\mathrm{h_{topo}}$'
     text4='$\mathrm{h_{base}}$'
 
     cbasef = lfilter(b, a, cbase)
