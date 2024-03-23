@@ -146,6 +146,97 @@ def diurnal_hours_exp_var_sam(exp,variables,explabel=[],explabel2=[],alt=[],lim=
 
     return 
 
+def diurnal_hours_exp_var_ccpp(exp,var=[],hours=[],explabel=[],explabel2=[],alt=[],lim=[],days=[],var_to=[],color=[],leg_loc=[],diurnal=[],show=[]): 
+
+
+    k=0
+    for ex in exp:
+
+        print('\n')
+        print('_______________________________________')
+        print('       ________%s_______'%(ex.name))
+        print('_______________________________________')
+        print('\n')
+
+        if k==0:
+            if not var:
+                vd=ex.vars_diurnal
+
+
+        j=0
+        for vtex in var:
+
+            if days:
+
+                idi     = dt.datetime(days[k][j][0][0], days[k][j][0][1] ,days[k][j][0][2], days[k][j][0][3],days[k][j][0][4],0) 
+                idf     = dt.datetime(days[k][j][1][0], days[k][j][1][1] ,days[k][j][1][2], days[k][j][1][3],days[k][j][1][4],0)
+
+                #print(idi,'xxxxxxx')
+                #ni,nf= down.data_n(idi,idf,ex.date[:])
+
+                #if ni>len(ex.date):
+
+                #    ni=ni-1
+
+            else:
+                #days=ex.datei+ex.datef
+                idi=ex.datei_diurnal
+                idf=ex.datef_diurnal
+
+                ###ni,nf= down.data_n(ex.datei_diurnal,ex.datef_diurnal,ex.date[:])
+
+
+
+            print("___________________")
+            print("%s"%(vtex))
+            print("___________________")
+
+
+            ni=0
+            #Obtain the heig from pressure
+            pressure=ex.pres[ni,:,0]
+            #Initial heigth in meters
+            z_sfc=60
+            #Pressure in Pa and T in K
+            z=ffc.get_height_from_pres(ex.T[ni,:,0], pressure, z_sfc)
+
+            name=ex.name
+            date=ex.date[:]
+
+
+            lim,alt,var_to,color,explabel1,explabel2,leg_loc,diurnal,show=df.default_values(exp,var,lim,alt,var_to,color,explabel,explabel2,leg_loc,diurnal,show,k,'ccpp')
+
+
+
+            #var=getattr(ex, vtex)
+            data=ex.nc_f[vtex][:,:,0]*var_to[k][j]
+            #
+
+            #(ex,vartoplot,date,z,alt,lim,color,name,explabel2,leg_loc,diurnal)
+            #lines per hour
+
+            if not var:
+                ch=2
+            else:
+                ch=hours[k][j]
+
+            figs,axis = main_plot_diurnal_new(ex,data,ch,idi,idf,date,z,alt[k][j],lim[k][j],color[k][j],name+'_'+vtex,explabel2[k][j],leg_loc[k][j],diurnal[k][j])
+
+            axis.grid(axis='y',linewidth=1.0,alpha=0.5,dashes=[1,1,0,0] )
+
+            if show[k][j]:
+
+                plt.show()
+
+            j+=1
+
+        k+=1
+
+
+        plt.close('all')
+
+    return 
+
 ###To plot a defined hour of the experiment. 
 def diurnal_exp_var_hour_sam(exp,variables,hour,fig_name,explabel=[],explabel2=[],explabel3=[],xlabel=[],alt=[],lim=[],var_to=[],color=[],leg_loc=[],diurnal=[],show=[]): 
 
@@ -235,20 +326,14 @@ def diurnal_hours_dict_ccpp(exp,explabel=[],alt=[],lim=[],var_to=[],color=[],leg
         k=0
         for var in ex.vars_diurnal:
 
-
-
-
             print("___________________")
             print("%s"%(ex.nc_f[var].name))
             print("___________________")
 
-
-            #print(pressure[0,:,0])
-            #print(pressure[0,:,0])
-
-
-            ni,nf= down.data_n(ex.datei_diurnal,ex.datef_diurnal,ex.date[:])
+            #ni,nf= down.data_n(ex.datei_diurnal,ex.datef_diurnal,ex.date[:])
+            ni=0
             pressure=ex.pres[ni,:,0]
+
             
             #Initial heigth in meters
             z_sfc=60
@@ -267,6 +352,7 @@ def diurnal_hours_dict_ccpp(exp,explabel=[],alt=[],lim=[],var_to=[],color=[],leg
 
 
             data=ex.nc_f[var][:,:,0]*defaul[2][k]
+
             date=ex.date
 
             #lines per hour
@@ -580,21 +666,12 @@ def main_plot_hour(exp,var,hour,fig_name,vv,explabel1,explabel2,explabel3,xlabel
 
     return fig,ax
 
-def main_plot_diurnal_new(ex,vartoplot,ch,date,z,alt,lim,color,name,explabel2,leg_loc,diurnal):
+def main_plot_diurnal_new(ex,vartoplot,ch,idi,idf,date,z,alt,lim,color,name,explabel2,leg_loc,diurnal):
 
-    #initial hour
-    hi=ex.datei_diurnal.hour
+    hi=idi.hour
     #final hour
-    hf=ex.datef_diurnal.hour
-    #print(hi,hf)
+    hf=idf.hour
 
-    ni,nf= down.data_n(ex.datei_diurnal,ex.datef_diurnal,ex.date[:])
-
-    ##interval hour
-    ch      = ch
-
-    idi=ex.datei_diurnal
-    idf=ex.datef_diurnal
 
     #mean diurnal function 
     meanvar,hour = diurnal_main(date,z,vartoplot,idi,idf,hi,hf,ch)
@@ -636,12 +713,13 @@ def main_plot_diurnal_new(ex,vartoplot,ch,date,z,alt,lim,color,name,explabel2,le
 
     label=['mean',False]
 
-    fn,ax=fown.splot_own(fig,ax,vartoplot[ni:nf,:],z[:]/1000.0,date,color,label)
+    fn,ax=fown.splot_own(fig,ax,vartoplot[:,:],z[:]/1000.0,date,color,label)
 
     plt.axis([lim[0],lim[1],alt[0],alt[1]])
 
-    #def label_plots(ax,legend,explabel,xlabel): 
-    ax=label_plots(ax,leg_loc,name,explabel2)
+
+    #def label_plots(ax,legend,explabel,explabel2,xlabel): 
+    ax=label_plots(ax,leg_loc,name,explabel2,leg_loc[6])
 
     label="%s"%(name)
 
@@ -903,21 +981,35 @@ def diurnal_main(data,z,var,idi,idf,hi,hf,ch):
 
     #nf+1 because for does arrive to n+1, but  n its necessary
     for i in range(ni,nf+1):
-    
+
+        plt.plot(var[i,0:20],z[0:20])
+
         for j in range(0,hf-hi+ch,ch):
 
+
             if int(data[i].hour)==j+hi: 
+
 
                 hour[j]     =   j+hi
 
                 varsum[j,:] =   varsum[j,:]+var[i,:]
 
+                #plt.plot(varsum[j,:],z)
+                #plt.show()
+                #print(j,data[i],j+hi,cont[j])
+
                 cont[j]     =   cont[j]+1
 
+
+    plt.show()
 
     for j in range(0,hf-hi+ch,ch):
         
         meanvar[j,:] = varsum[j,:]/cont[j]
+
+        plt.plot(meanvar[j,0:20],z[0:20])
+
+    plt.show()
 
 
     return meanvar,hour
